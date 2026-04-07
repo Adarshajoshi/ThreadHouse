@@ -1,0 +1,54 @@
+# ── Dependencies ──────────────────────────────────────────────────────────────
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# ── Environment variables (never commit these) ────────────────────────────────
+.env
+.env.local
+.env.development
+.env.production
+*.env
+
+# ── Python virtual environments ───────────────────────────────────────────────
+venv/
+env/
+.venv/
+ENV/
+
+# ── Build outputs ─────────────────────────────────────────────────────────────
+dist/
+build/
+*.egg-info/
+
+# ── Database files ────────────────────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+trendhive.db
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── OS files ──────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Editor files ──────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── Vite / React ──────────────────────────────────────────────────────────────
+dist/
+dist-ssr/
+*.local
+
+# ── Products JSON (generated from assets) ────────────────────────────────────
+backend/products.json
