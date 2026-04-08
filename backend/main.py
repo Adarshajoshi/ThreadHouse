@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 import asyncpg
 import os
-from db.database import init_db
+from backend.db.session import init_db
 from routers import analytics, auth, products, orders
 
 load_dotenv()
