@@ -3,7 +3,7 @@ from typing import Any
 import asyncpg
 from fastapi import APIRouter, Depends
 
-from db.database import get_db
+from backend.db.session import get_db
 from models.schemas import AnalyticsEvent
 
 router = APIRouter()

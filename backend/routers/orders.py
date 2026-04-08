@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Optional
 import asyncpg
 import json
-from db.database import get_db
+from backend.db.session import get_db
 from models.schemas import PlaceOrderRequest, OrderStatusUpdate
 
 router=APIRouter()

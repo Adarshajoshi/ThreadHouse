@@ -4,7 +4,7 @@ import asyncpg
 import bcrypt
 import jwt
 from fastapi import APIRouter, Depends, HTTPException, status
-from db.database import get_db
+from backend.db.session import get_db
 from models.schemas import AuthResponse, LoginRequest, SignUpRequest
 
 router=APIRouter()
