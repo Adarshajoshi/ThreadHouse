@@ -129,3 +129,8 @@ def get_top_customers(
             for c in customers
         ]
     }
+
+@router.get("/results/{job_id}/plots")
+def get_plot_data(job_id: str, db: Session = Depends(get_db)):
+    pass
+
