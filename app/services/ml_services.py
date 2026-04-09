@@ -23,8 +23,6 @@ def standardize_customer_id(df: pd.DataFrame) -> pd.DataFrame:
     )
     return df
 
-
-
 def run_full_pipeline(job_id: str, filepath: str):
     db = SessionLocal()
 
