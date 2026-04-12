@@ -7,6 +7,7 @@ from decouple import config
 SECRET_KEY = config("SECRET_KEY")
 
 client = Groq(api_key= config('GROQ_API_KEY'))
+
 MODEL  = "qwen/qwen3-32b"
 
 COLUMN_PATTERNS = {
