@@ -6,7 +6,7 @@ SECRET_KEY = config("SECRET_KEY")
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Mindless Systems"
-    DATABASE_URL: str = f"postgresql://postgres:{config('DB_PASSWORD')}@localhost:{config('DB_PORT')}/{config('DB_NAME')}"
+    DATABASE_URL: str
     GROQ_API_KEY: str = ""
     UPLOAD_DIR: str = "uploads"
     MODEL_DIR: str = "models"
