@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import torch
-import torch.nn as nn
+from torch import nn
 from sklearn.preprocessing import RobustScaler
 import os
 from app.core.config import settings
