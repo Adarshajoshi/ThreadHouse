@@ -60,32 +60,32 @@ This system solves that by accepting any transactional CSV dataset, automaticall
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    React Frontend                        │
+│                    React Frontend                       │
 │         (Recharts, Axios, Tailwind CSS)                 │
 └──────────────────────┬──────────────────────────────────┘
                        │ HTTP / REST
 ┌──────────────────────▼──────────────────────────────────┐
-│                  FastAPI Backend                         │
+│                  FastAPI Backend                        │
 │              (HuggingFace Spaces)                       │
 │                                                         │
-│  ┌─────────────────────────────────────────────────┐   │
-│  │              Intelligence Pipeline               │   │
-│  │                                                 │   │
-│  │  Schema Detection → RFM Extraction              │   │
-│  │       → Segmentation → HVR Prediction           │   │
-│  │       → CLV (BG/NBD) → Anomaly Detection        │   │
-│  │       → LLM Insights                            │   │
-│  └─────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────┐    │
+│  │              Intelligence Pipeline              │    │
+│  │                                                 │    │
+│  │  Schema Detection → RFM Extraction              │    │
+│  │       → Segmentation → HVR Prediction           │    │
+│  │       → CLV (BG/NBD) → Anomaly Detection        │    │
+│  │       → LLM Insights                            │    │
+│  └─────────────────────────────────────────────────┘    │
 └──────────────────────┬──────────────────────────────────┘
                        │ SQLAlchemy ORM
 ┌──────────────────────▼──────────────────────────────────┐
-│              PostgreSQL (Supabase)                       │
+│              PostgreSQL (Supabase)                      │
 │         jobs | customer_profiles | insights             │
 └─────────────────────────────────────────────────────────┘
                        │
 ┌──────────────────────▼──────────────────────────────────┐
-│                 External Services                        │
-│         Groq API (Qwen3) — LLM insight generation      │
+│                 External Services                       │
+│         Groq API (Qwen3) — LLM insight generation       │
 └─────────────────────────────────────────────────────────┘
 ```
 
