@@ -50,9 +50,9 @@ This system solves that by accepting any transactional CSV dataset, automaticall
 
 | Service | URL |
 |---|---|
-| Backend API | `https://your-username-mindless-systems.hf.space` |
-| API Documentation | `https://your-username-mindless-systems.hf.space/docs` |
-| Frontend Dashboard | `https://your-app.vercel.app` |
+| Backend API | `https://huggingface.co/spaces/paudelapil/Mindless_System` |
+| API Documentation | `https://paudelapil-mindless-system.hf.space/docs` |
+| Frontend Dashboard | `ADD_YOUR_VERCEL_URL_HERE` |
 
 ---
 
@@ -85,7 +85,7 @@ This system solves that by accepting any transactional CSV dataset, automaticall
                        │
 ┌──────────────────────▼──────────────────────────────────┐
 │                 External Services                        │
-│    Groq API (Qwen 3) — LLM insight generation       │
+│         Groq API (Qwen3) — LLM insight generation      │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -103,7 +103,7 @@ This system solves that by accepting any transactional CSV dataset, automaticall
 | Data Processing | Pandas, NumPy |
 | ML Framework | PyTorch, Scikit-learn |
 | CLV Modeling | Lifetimes (BG/NBD + Gamma-Gamma) |
-| LLM Provider | Groq API (Qwen 3 32B) |
+| LLM Provider | Groq API (Qwen3) |
 | Fuzzy Matching | RapidFuzz |
 | Deployment | HuggingFace Spaces (Docker) |
 
@@ -156,10 +156,10 @@ Layer 4 ── Anomaly Detection
     │         Classify: Bulk Buyer / Ghost / Return Abuser / Erratic
     ▼
 Layer 5 ── LLM Insight Generation
-              Executive summary (Qwen 3)
-              Segment recommendations (Qwen 3)
+              Executive summary (Qwen3)
+              Segment recommendations (Qwen3)
               Priority alerts (rule-based)
-              Natural language Q&A (Qwen 3)
+              Natural language Q&A (Qwen3)
 ```
 
 ---
@@ -173,7 +173,7 @@ Layer 5 ── LLM Insight Generation
 ```
 Tier 1 — Exact match      "CustomerID" → detected instantly
 Tier 2 — Fuzzy match      "customer_no" → 85% similarity → detected
-Tier 3 — LLM fallback     Send columns + sample to Qwen → identified
+Tier 3 — LLM fallback     Send columns + sample to Qwen3 → identified
 ```
 
 **RFM Features Extracted:**
@@ -307,7 +307,7 @@ Latent(2) → Linear(8) → ReLU → Linear(16) → ReLU → Output(8)
 
 ### Layer 5 — LLM Insight Generation
 
-Uses **Qwen3-32B** via **Groq API** (free tier, ~0.5 second response time).
+Uses **Qwen3** via **Groq API** (free tier, ~0.5 second response time).
 
 **Four insight types generated:**
 
@@ -335,7 +335,7 @@ Alerts are the most critical output — clients act on them immediately. Rule-ba
 **Natural Language Q&A:**
 ```
 Client: "Which customers should I target for Black Friday?"
-Engine: [builds context from database] → [sends to Qwen] → answer in 0.5s
+Engine: [builds context from database] → [sends to Qwen3] → answer in 0.5s
 ```
 
 ---
@@ -414,8 +414,6 @@ Response:
   "filename": "transactions.csv",
   "row_count": 541909,
   "customer_count": 4373,
-  "pipeline_stage": "complete",
-  "pipeline_progress": 100,
   "created_at": "2024-01-01T00:00:00",
   "completed_at": "2024-01-01T00:01:30"
 }
@@ -460,10 +458,10 @@ Returns all chart data ready for Recharts:
   "clv_by_segment": [{"segment": "Premium CLV", "avg_clv": 8800}],
   "rfm_scatter": [{"recency": 12, "frequency": 13, "monetary": 5804, "segment": "Champion"}],
   "anomaly_breakdown": [{"type": "Erratic Behavior", "count": 125}],
-  "monetary_distribution": [...],
-  "frequency_distribution": [...],
-  "hvr_potential": [...],
-  "prob_alive_distribution": [...]
+  "monetary_distribution": [],
+  "frequency_distribution": [],
+  "hvr_potential": [],
+  "prob_alive_distribution": []
 }
 ```
 
@@ -611,7 +609,6 @@ MODEL_DIR=models
 ### Create Database Tables
 
 ```python
-# Run once to create tables
 python -c "
 from app.db.session import engine
 from app.db.models import Base
@@ -665,8 +662,7 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7860"]
 1. Create project at supabase.com
 2. Go to Settings → Database → Connection string
 3. Copy the URI format connection string
-4. Add `?sslmode=require` to the end
-5. Set as `DATABASE_URL` secret in HF Spaces
+4. Set as `DATABASE_URL` secret in HF Spaces
 
 **SSL configuration required for Supabase:**
 ```python
@@ -683,7 +679,7 @@ engine = create_engine(
 2. Import repo at vercel.com
 3. Add environment variable:
    ```
-   NEXT_PUBLIC_API_URL=https://your-username-mindless-systems.hf.space
+   NEXT_PUBLIC_API_URL=ADD_YOUR_HF_URL_HERE
    ```
 4. Deploy
 
@@ -777,7 +773,7 @@ The system is designed to work on **any** transactional dataset with equivalent 
 - Pipeline runs synchronously — large datasets (1M+ rows) may be slow
 
 **LLM:**
-- LLM insights may occasionally hallucinate — rule-based alerts are always used for critical business decisions
+- Qwen3 insights may occasionally hallucinate — rule-based alerts are always used for critical business decisions
 - Groq API requires internet connectivity — no offline fallback for insight generation
 
 ---
@@ -829,4 +825,4 @@ This project is developed as a final year academic project.
 
 ---
 
-*Built with by Mindless Systems*
+*Built with 🧠 by Mindless Systems*
