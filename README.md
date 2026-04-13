@@ -825,4 +825,4 @@ This project is developed as a final year academic project.
 
 ---
 
-*Built with 🧠 by Mindless Systems*
+*Built by Mindless Systems*
