@@ -1,6 +1,6 @@
 # Automated Customer Intelligence Engine
 
-> A full-stack AI-powered customer analytics platform that automatically segments customers, predicts lifetime value, detects anomalies, and generates actionable business insights — all from a single CSV upload.
+> A full-stack AI-powered customer analytics platform that automatically segments customers, predicts lifetime value, detects anomalies, and generates actionable business insights all from a single CSV upload.
 
 ---
 
@@ -103,7 +103,7 @@ This system solves that by accepting any transactional CSV dataset, automaticall
 | Data Processing | Pandas, NumPy |
 | ML Framework | PyTorch, Scikit-learn |
 | CLV Modeling | Lifetimes (BG/NBD + Gamma-Gamma) |
-| LLM Provider | Groq API (Llama 3.1 8B) |
+| LLM Provider | Groq API (Qwen 3 32B) |
 | Fuzzy Matching | RapidFuzz |
 | Deployment | HuggingFace Spaces (Docker) |
 
@@ -156,10 +156,10 @@ Layer 4 ── Anomaly Detection
     │         Classify: Bulk Buyer / Ghost / Return Abuser / Erratic
     ▼
 Layer 5 ── LLM Insight Generation
-              Executive summary (Llama 3.1)
-              Segment recommendations (Llama 3.1)
+              Executive summary (Qwen 3)
+              Segment recommendations (Qwen 3)
               Priority alerts (rule-based)
-              Natural language Q&A (Llama 3.1)
+              Natural language Q&A (Qwen 3)
 ```
 
 ---
