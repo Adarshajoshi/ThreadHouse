@@ -14,33 +14,37 @@ COLUMN_PATTERNS = {
     "customer_id": [
         "customerid", "customer_id", "clientid", "client_id",
         "userid", "user_id", "custid", "cust_id", "memberid",
-        "member_id", "accountid", "account_id", "buyerid"
+        "member_id", "accountid", "account_id", "buyerid",
     ],
     "date": [
         "invoicedate", "invoice_date", "orderdate", "order_date",
         "transactiondate", "transaction_date", "purchasedate",
-        "purchase_date", "date", "datetime", "timestamp", "saledate"
+        "purchase_date", "date", "datetime", "timestamp", "saledate",
     ],
     "amount": [
         "unitprice", "unit_price", "price", "amount", "revenue",
         "sales", "total", "value", "cost", "spend", "monetary",
-        "totalprice", "total_price", "saleamount", "sale_amount"
+        "totalprice", "total_price", "saleamount", "sale_amount",
+        "unitcost", "unit_cost", "itemcost", "item_cost", "itemprice",
+        "item_price", "rate", "sellingprice", "listprice",
     ],
     "quantity": [
         "quantity", "qty", "units", "count", "items",
-        "numberofitems", "num_items", "volume", "pieces"
+        "numberofitems", "num_items", "volume", "pieces",
+        "qtyordered", "quantityordered", "noofitems",
     ],
     "invoice_id": [
         "invoiceno", "invoice_no", "invoice_id", "invoiceid",
         "orderid", "order_id", "transactionid", "transaction_id",
-        "receiptid", "receipt_id", "saleid", "sale_id"
+        "receiptid", "receipt_id", "saleid", "sale_id", "orderno",
+        "order_no", "referenceid", "ref_id", "ticketid",
     ]
 }
 
 REQUIRED_FIELDS = ["customer_id", "date", "amount", "quantity", "invoice_id"]
 
 
-def _fuzzy_detect(df: pd.DataFrame, threshold: int = 80) -> dict:
+def _fuzzy_detect(df: pd.DataFrame, threshold: int = 75) -> dict:
     detected = {}
 
     df_cols_normalized = {
