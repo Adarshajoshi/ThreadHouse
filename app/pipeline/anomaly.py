@@ -79,11 +79,17 @@ def detect_anomalies(df: pd.DataFrame) -> pd.DataFrame:
             return "Normal"
         if row["Monetary"] == 0 or row["TotalItems"] == 0:
             return "Return Abuser"
-        if row["AvgItemsPerOrder"] > df["AvgItemsPerOrder"].quantile(0.95):
+    
+        avg_items = df["AvgItemsPerOrder"].mean()
+        if row["AvgItemsPerOrder"] > (avg_items * 3):
             return "Bulk Buyer / Reseller"
-        if row["Frequency"] == 1 and row["Monetary"] > df["Monetary"].quantile(0.90):
+        
+        avg_monetary = df["Monetary"].mean()
+        if row["Frequency"] == 1 and row["Monetary"] > (avg_monetary * 2):
             return "One-Hit High Spender"
-        if row["Recency"] > df["Recency"].quantile(0.95) and row["Frequency"] <= 2:
+        
+        avg_recency = df["Recency"].mean()
+        if row["Recency"] > (avg_recency * 1.5) and row["Frequency"] <= 2:
             return "Ghost Customer"
         return "Erratic Behavior"
 
