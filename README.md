@@ -173,7 +173,7 @@ Layer 5 ── LLM Insight Generation
 ```
 Tier 1 — Exact match      "CustomerID" → detected instantly
 Tier 2 — Fuzzy match      "customer_no" → 85% similarity → detected
-Tier 3 — LLM fallback     Send columns + sample to Llama → identified
+Tier 3 — LLM fallback     Send columns + sample to Qwen → identified
 ```
 
 **RFM Features Extracted:**
@@ -335,7 +335,7 @@ Alerts are the most critical output — clients act on them immediately. Rule-ba
 **Natural Language Q&A:**
 ```
 Client: "Which customers should I target for Black Friday?"
-Engine: [builds context from database] → [sends to Llama] → answer in 0.5s
+Engine: [builds context from database] → [sends to Qwen] → answer in 0.5s
 ```
 
 ---
