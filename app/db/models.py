@@ -5,6 +5,11 @@ import uuid
 from datetime import datetime
 
 class Job(Base):
+    """
+    Represents a processing job for uploaded data.
+    This model tracks the lifestyle of a data processing task, including its
+    status, associated file and timestamps.
+    """
     __tablename__ = "jobs"
 
     id = Column(UUID(as_uuid = True), primary_key = True, default = uuid.uuid4)
@@ -17,6 +22,12 @@ class Job(Base):
     completed_at   = Column(DateTime, nullable=True)
 
 class CustomerProfile(Base):
+    """
+    Stores computed analytics and segmentation data for each customer.
+
+    This include RFM metrics, customer lifetime value predictions, anomaly detection outputs 
+    and behavorial insights derived from transaction data
+    """
     __tablename__ = "customer_profiles"
 
     id = Column(UUID(as_uuid = True), primary_key = True, default = uuid.uuid4)
@@ -52,6 +63,11 @@ class CustomerProfile(Base):
 
 
 class Insight(Base):
+    """
+    Represents an insight generated from processed customer data.
+    Insights summarize key findings, trends, or alerts derived from
+    analytics and are categorized and prioritized for action.
+    """
     __tablename__ = "insights"
 
     id = Column(UUID(as_uuid = True), primary_key = True, default = uuid.uuid4)
