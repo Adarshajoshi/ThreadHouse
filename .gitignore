@@ -52,3 +52,7 @@ dist-ssr/
 
 # ── Products JSON (generated from assets) ────────────────────────────────────
 backend/products.json
+
+# Frontend build output — built by Dockerfile on HF Spaces
+frontend/dist/
+frontend/node_modules/
