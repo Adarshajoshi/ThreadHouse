@@ -5,6 +5,11 @@ from sqlalchemy.ext.declarative import declarative_base
 SECRET_KEY = config("SECRET_KEY")
 
 class Settings(BaseSettings):
+    """
+    Application Configuration settings.
+    This class uses Pydantic's BaseSettings to automatically load environment variables
+    and provide default values where applicable.
+    """
     PROJECT_NAME: str = "Mindless Systems"
     DATABASE_URL: str
     GROQ_API_KEY: str = ""
@@ -17,4 +22,5 @@ class Settings(BaseSettings):
         extra = "ignore"  
     )
 
+# Instantiating settings to be used across application
 settings = Settings()
