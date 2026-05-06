@@ -7,6 +7,7 @@ SECRET_KEY = config("SECRET_KEY")
 class Settings(BaseSettings):
     """
     Application Configuration settings.
+    
     This class uses Pydantic's BaseSettings to automatically load environment variables
     and provide default values where applicable.
     """

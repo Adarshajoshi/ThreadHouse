@@ -4,6 +4,11 @@ from uuid import UUID
 from datetime import datetime
 
 class JobResponse(BaseModel):
+    """
+    Response schema representing a processing job.
+
+    Used to return job metadata and processing status to API consumers.
+    """
     id: UUID
     status: str
     filename: str
@@ -16,6 +21,12 @@ class JobResponse(BaseModel):
         from_attributes = True
 
 class CustomerProfileResponse(BaseModel):
+    """
+    Response schema representing a customer analytics profile.
+
+    Contains RFM metrics, segmentation, predictive scores and anomaly signals
+    derived from customer transaction behavior.
+    """
     customer_id: str
     recency: float
     frequency: float
@@ -34,13 +45,25 @@ class CustomerProfileResponse(BaseModel):
         from_attributes = True
 
 class QueryRequest(BaseModel):
+    """
+    Request schema for natural language query input.
+    """
     question: str
 
 class QueryResponse(BaseModel):
+    """
+    Response schema for answering natural language queries.
+    """
     question: str
     answer: str
 
 class AlertResponse(BaseModel):
+    """
+    Schema representing a generated business alert or insight.
+
+    Used to communicate prioritized recommendations or warnings
+    derived from analytics
+    """
     priority: str
     type: str
     title: str

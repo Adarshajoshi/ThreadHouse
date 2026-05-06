@@ -7,6 +7,7 @@ from datetime import datetime
 class Job(Base):
     """
     Represents a processing job for uploaded data.
+
     This model tracks the lifestyle of a data processing task, including its
     status, associated file and timestamps.
     """
@@ -65,6 +66,7 @@ class CustomerProfile(Base):
 class Insight(Base):
     """
     Represents an insight generated from processed customer data.
+    
     Insights summarize key findings, trends, or alerts derived from
     analytics and are categorized and prioritized for action.
     """
