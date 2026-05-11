@@ -14,11 +14,11 @@ const Search = () => {
     <div className='px-5 pt-10 border-t'>
       <div className='flex justify-between items-center mb-6'>
         <Title text1='SEARCH' text2=' RESULTS' />
-        <p className='text-sm text-gray-400'>{results.length} items</p>
+        <p className='text-sm text-stone-400 '>{results.length} items</p>
       </div>
 
       {results.length === 0 ? (
-        <div className='text-center py-20 text-gray-400 text-sm'>
+        <div className='text-center py-20 text-stone-400 text-sm'>
           No products found for "{search}"
         </div>
       ) : (

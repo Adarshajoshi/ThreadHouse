@@ -14,7 +14,7 @@ const ShopByCategory = () => {
     <div className='my-10 px-4'>
       <div className='text-center py-8 text-3xl'>
         <Title text1={"SHOP BY"} text2={" CATEGORY"} />
-        <p className='w-3/4 m-auto text-xs sm:text-sm md:text-base text-gray-600'>
+        <p className='w-3/4 m-auto text-xs sm:text-sm md:text-base text-stone-600 '>
           Find the perfect style for everyone — browse our top categories.
         </p>
       </div>

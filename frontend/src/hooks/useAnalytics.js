@@ -3,11 +3,36 @@ import { useLocation } from 'react-router-dom'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
+// ---------------------------------------------------------------------------
+// Session + identity
+// ---------------------------------------------------------------------------
+//
+// session_id: stable per browser tab. Resets when the tab is closed.
+// user_id:    pulled from localStorage `th_user` (set by ShopContext on login).
+//             Re-read on every event so login/logout takes effect immediately.
+
 const SESSION_ID = (() => {
   let id = sessionStorage.getItem('th_session')
-  if (!id) { id = Math.random().toString(36).slice(2); sessionStorage.setItem('th_session', id) }
+  if (!id) {
+    id = Math.random().toString(36).slice(2)
+    sessionStorage.setItem('th_session', id)
+  }
   return id
 })()
+
+function currentUserId() {
+  try {
+    const u = JSON.parse(localStorage.getItem('th_user'))
+    // Backend sends user_id on login response; ShopContext stores the whole user object.
+    return u?.user_id ?? u?.id ?? null
+  } catch {
+    return null
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Low-level send (used by every helper)
+// ---------------------------------------------------------------------------
 
 async function sendEvent(payload) {
   try {
@@ -15,14 +40,112 @@ async function sendEvent(payload) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        session_id:     SESSION_ID,
+        user_id:        currentUserId(),
+        timestamp:      new Date().toISOString(),
+        page:           null,
+        element:        null,
+        value:          null,
+        monetary_value: null,
         ...payload,
-        session_id: SESSION_ID,
-        timestamp: new Date().toISOString(),
       }),
     })
   } catch {
+    // analytics is best-effort; never break the UX
   }
 }
+
+// ---------------------------------------------------------------------------
+// RFM-specific helpers
+// ---------------------------------------------------------------------------
+//
+// These fire dedicated event_types so the backend (and the live dashboard)
+// can distinguish browsing noise from purchase intent. They feed RFM via:
+//   - Recency:  any of these events update "last seen / last bought"
+//   - Frequency: count of purchase + add_to_cart events per user_id
+//   - Monetary:  monetary_value field on purchase / cart events
+
+export const trackProductView = (productId, price, page) =>
+  sendEvent({
+    event_type:     'product_view',
+    element:        `product:${productId}`,
+    value:          String(productId),
+    monetary_value: typeof price === 'number' ? price : null,
+    page:           page ?? window.location.pathname,
+  })
+
+export const trackAddToCart = (productId, price, size, page) =>
+  sendEvent({
+    event_type:     'add_to_cart',
+    element:        `product:${productId}`,
+    value:          [productId, size].filter(Boolean).join('|'),
+    monetary_value: typeof price === 'number' ? price : null,
+    page:           page ?? window.location.pathname,
+  })
+
+export const trackRemoveFromCart = (productId, page) =>
+  sendEvent({
+    event_type:     'remove_from_cart',
+    element:        `product:${productId}`,
+    value:          String(productId),
+    page:           page ?? window.location.pathname,
+  })
+
+export const trackCheckoutStart = (cartTotal, itemCount, page) =>
+  sendEvent({
+    event_type:     'checkout_start',
+    element:        'checkout',
+    value:          String(itemCount ?? ''),
+    monetary_value: typeof cartTotal === 'number' ? cartTotal : null,
+    page:           page ?? window.location.pathname,
+  })
+
+export const trackPurchase = (orderId, total, itemCount, page) =>
+  sendEvent({
+    event_type:     'purchase',
+    element:        `order:${orderId}`,
+    value:          [orderId, itemCount].filter(Boolean).join('|'),
+    monetary_value: typeof total === 'number' ? total : null,
+    page:           page ?? window.location.pathname,
+  })
+
+export const trackLogin = (userId, page) =>
+  sendEvent({
+    event_type:     'login',
+    element:        `user:${userId}`,
+    value:          String(userId),
+    page:           page ?? window.location.pathname,
+  })
+
+export const trackSignup = (userId, page) =>
+  sendEvent({
+    event_type:     'signup',
+    element:        `user:${userId}`,
+    value:          String(userId),
+    page:           page ?? window.location.pathname,
+  })
+
+export const trackLogout = (page) =>
+  sendEvent({
+    event_type:     'logout',
+    page:           page ?? window.location.pathname,
+  })
+
+export const trackSearch = (query, page) =>
+  sendEvent({
+    event_type:     'search',
+    element:        'search_input',
+    value:          query?.slice(0, 80) ?? null,
+    page:           page ?? window.location.pathname,
+  })
+
+// Free-form fallback for ad-hoc events.
+export const trackEvent = (event_type, fields = {}) =>
+  sendEvent({ event_type, ...fields })
+
+// ---------------------------------------------------------------------------
+// Hook: passive page/click/hover/keypress/mouse-move tracking
+// ---------------------------------------------------------------------------
 
 export function useAnalytics() {
   const location = useLocation()
@@ -30,7 +153,7 @@ export function useAnalytics() {
 
   // Page view on every route change
   useEffect(() => {
-    sendEvent({ event_type: 'page_view', page: location.pathname, element: null, value: null })
+    sendEvent({ event_type: 'page_view', page: location.pathname })
   }, [location.pathname])
 
   useEffect(() => {
@@ -41,8 +164,8 @@ export function useAnalytics() {
       if (!el) return
       sendEvent({
         event_type: 'click',
-        element: el.dataset.track,
-        value: el.dataset.trackValue || el.innerText?.slice(0, 60) || null,
+        element:    el.dataset.track,
+        value:      el.dataset.trackValue || el.innerText?.slice(0, 60) || null,
         page,
       })
     }
@@ -56,8 +179,8 @@ export function useAnalytics() {
       setTimeout(() => delete timers.current[key], 1500)
       sendEvent({
         event_type: 'hover',
-        element: el.dataset.track,
-        value: el.dataset.trackValue || null,
+        element:    el.dataset.track,
+        value:      el.dataset.trackValue || null,
         page,
       })
     }
@@ -70,8 +193,8 @@ export function useAnalytics() {
       timers.current[key] = setTimeout(() => {
         sendEvent({
           event_type: 'keypress',
-          element: el.dataset.track,
-          value: el.value?.slice(0, 60) || e.key,
+          element:    el.dataset.track,
+          value:      el.value?.slice(0, 60) || e.key,
           page,
         })
       }, 600)
@@ -87,8 +210,8 @@ export function useAnalytics() {
       if (!el) return
       sendEvent({
         event_type: 'mouse_move',
-        element: el.dataset.track,
-        value: `${Math.round((e.clientX / window.innerWidth) * 100)}%,${Math.round((e.clientY / window.innerHeight) * 100)}%`,
+        element:    el.dataset.track,
+        value:      `${Math.round((e.clientX / window.innerWidth) * 100)}%,${Math.round((e.clientY / window.innerHeight) * 100)}%`,
         page,
       })
     }
@@ -106,9 +229,27 @@ export function useAnalytics() {
     }
   }, [location.pathname])
 
-  const track = useCallback((eventType, element, value = null) => {
-    sendEvent({ event_type: eventType, element, value, page: location.pathname })
+  // Stable callable for ad-hoc tracking from any component.
+  const track = useCallback((eventType, element, value = null, monetary_value = null) => {
+    sendEvent({
+      event_type:     eventType,
+      element,
+      value,
+      monetary_value,
+      page:           location.pathname,
+    })
   }, [location.pathname])
 
-  return { track }
+  return {
+    track,
+    trackProductView,
+    trackAddToCart,
+    trackRemoveFromCart,
+    trackCheckoutStart,
+    trackPurchase,
+    trackLogin,
+    trackSignup,
+    trackLogout,
+    trackSearch,
+  }
 }

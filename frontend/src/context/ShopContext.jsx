@@ -2,6 +2,7 @@ import { createContext, useEffect, useState } from "react";
 import { products } from "../assets/frontend_assets/assets"
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { trackAddToCart, trackCheckoutStart, trackPurchase, trackLogout, trackEvent } from "../hooks/useAnalytics";
 
 export const ShopContext = createContext();
 
@@ -10,6 +11,7 @@ const ORDERS_STORAGE_KEY = 'th_orders';
 
 const ShopContextProvider = (props) => {
 
+    const API_BASE    = import.meta.env.VITE_API_URL || 'http://localhost:8000';
     const currency    = '$';
     const delivery_fee = 10;
     const [search, setSearch]         = useState('');
@@ -25,6 +27,7 @@ const ShopContextProvider = (props) => {
         const isLoggedIn = !!user
 
         const logout = () => {
+        trackLogout()
         setUser(null)
         localStorage.removeItem('th_token')
         localStorage.removeItem('th_user')
@@ -55,6 +58,29 @@ const ShopContextProvider = (props) => {
         try { localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(orders)); }
         catch { }
     }, [orders]);
+
+    // ---- Wishlist (favorites) ----
+    const [wishlist, setWishlist] = useState(() => {
+        try { return JSON.parse(localStorage.getItem('th_wishlist')) || []; }
+        catch { return []; }
+    });
+    useEffect(() => {
+        try { localStorage.setItem('th_wishlist', JSON.stringify(wishlist)); } catch {}
+    }, [wishlist]);
+
+    const toggleWishlist = (productId) => {
+        const product = products.find(p => p._id === productId);
+        const isAdding = !wishlist.includes(productId);
+        setWishlist(w => isAdding ? [...w, productId] : w.filter(id => id !== productId));
+        trackEvent(isAdding ? 'wishlist_add' : 'wishlist_remove', {
+            element: `product:${productId}`,
+            value:   String(productId),
+            monetary_value: product?.price ?? null,
+            page:    window.location.pathname,
+        });
+        toast.success(isAdding ? 'Added to wishlist' : 'Removed from wishlist');
+    };
+    const isWishlisted = (id) => wishlist.includes(id);
 
     const placeOrder = async(deliveryInfo, paymentMethod) => {
         const cartProductList = [];
@@ -88,21 +114,35 @@ const ShopContextProvider = (props) => {
             total: getCartAmount() + delivery_fee,
         };
 
+        // RFM: checkout intent
+        const itemCount = cartProductList.reduce((n, p) => n + (p.quantity || 0), 0);
+        trackCheckoutStart(newOrder.total, itemCount);
+
+        const token = localStorage.getItem('th_token');
+        let serverOk = false;
         try {
-            await fetch(`${API_BASE}/api/orders/`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                order_id:       newOrder.orderId,
-                items:          cartProductList,
-                delivery_info:  deliveryInfo,
-                payment_method: paymentMethod,
-                total:          newOrder.total,
-            }),
-            })
+            const res = await fetch(`${API_BASE}/api/orders/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
+                body: JSON.stringify({
+                    order_id:       newOrder.orderId,
+                    items:          cartProductList,
+                    delivery_info:  deliveryInfo,
+                    payment_method: paymentMethod,
+                    total:          newOrder.total,
+                }),
+            });
+            serverOk = res.ok;
         } catch {
-            toast.error('Order saved locally only — server unavailable')
+            toast.error('Order saved locally only — server unavailable');
         }
+
+        // RFM: purchase event (always fired, even if server save failed,
+        // so the analytics_events table still records it)
+        trackPurchase(newOrder.orderId, newOrder.total, itemCount);
 
         setOrders(prev => [newOrder, ...prev]);
         setCartItems({});
@@ -120,6 +160,11 @@ const ShopContextProvider = (props) => {
             cartData[itemId] = { [size]: 1 };
         }
         setCartItems(cartData);
+
+        // RFM tracking - record price so the backend can score Monetary
+        const product = products.find(p => p._id === itemId);
+        trackAddToCart(itemId, product?.price ?? null, size);
+
         toast.success('Item added to cart!');
     };
 
@@ -158,6 +203,7 @@ const ShopContextProvider = (props) => {
         search, setSearch, showSearch, setShowSearch,
         cartItems, addToCart, getCartCount, updateQuantity, getCartAmount, clearCart,
         orders, placeOrder,
+        wishlist, toggleWishlist, isWishlisted,
         navigate,
         user,setUser, isLoggedIn, logout,
     };

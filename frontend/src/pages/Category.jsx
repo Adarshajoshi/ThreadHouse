@@ -28,7 +28,7 @@ const PRICE_PRESETS = [
 ]
 
 const FilterSection = ({ title, children }) => (
-  <div className='border border-gray-300 pl-5 pr-3 py-3 mt-4'>
+  <div className='border border-stone-300 pl-5 pr-3 py-3 mt-4'>
     <p className='mb-3 text-sm font-medium'>{title}</p>
     {children}
   </div>
@@ -151,7 +151,7 @@ const Category = ({ category }) => {
 
           {/* Sort By */}
           <FilterSection title='SORT BY'>
-            <div className='flex flex-col gap-2 text-sm text-gray-700'>
+            <div className='flex flex-col gap-2 text-sm text-stone-700 '>
               {[
                 { value: 'relevance', label: 'Relevance' },
                 { value: 'low-high',  label: 'Price: Low to High' },
@@ -174,7 +174,7 @@ const Category = ({ category }) => {
 
           {/* Types */}
           <FilterSection title='TYPES'>
-            <div className='flex flex-col gap-2 text-sm text-gray-700'>
+            <div className='flex flex-col gap-2 text-sm text-stone-700 '>
               {subcats.map(cat => (
                 <label key={cat} className='flex gap-2 cursor-pointer'>
                   <input
@@ -200,7 +200,7 @@ const Category = ({ category }) => {
                   className={`text-left text-sm px-2 py-1 border transition-all duration-150
                     ${selectedPreset?.label === preset.label
                       ? 'border-black bg-black text-white'
-                      : 'border-gray-200 text-gray-600 hover:border-gray-400'
+                      : 'border-stone-200 text-stone-600 hover:border-gray-400'
                     }`}
                 >
                   {preset.label}
@@ -214,22 +214,22 @@ const Category = ({ category }) => {
                   placeholder='Min'
                   value={minPrice}
                   onChange={e => handleMinPrice(e.target.value)}
-                  className='w-full border border-gray-300 text-xs px-2 py-1 text-gray-700 focus:outline-none focus:border-black'
+                  className='w-full border border-stone-300 text-xs px-2 py-1 text-stone-700 focus:outline-none focus:border-black'
                 />
-                <span className='text-gray-400 text-xs'>–</span>
+                <span className='text-stone-400 text-xs'>–</span>
                 <input
                   type='number'
                   placeholder='Max'
                   value={maxPrice}
                   onChange={e => handleMaxPrice(e.target.value)}
-                  className='w-full border border-gray-300 text-xs px-2 py-1 text-gray-700 focus:outline-none focus:border-black'
+                  className='w-full border border-stone-300 text-xs px-2 py-1 text-stone-700 focus:outline-none focus:border-black'
                 />
               </div>
 
               {priceActive && (
                 <p
                   onClick={clearPrice}
-                  className='text-xs text-gray-400 cursor-pointer hover:text-black'
+                  className='text-xs text-stone-400 cursor-pointer hover:text-black'
                 >
                   Clear price
                 </p>
@@ -243,7 +243,7 @@ const Category = ({ category }) => {
               {sizeGroups.map(group => (
                 <div key={group.label}>
                   {sizeGroups.length > 1 && (
-                    <p className='text-xs text-gray-400 mb-1'>{group.label}</p>
+                    <p className='text-xs text-stone-400 mb-1'>{group.label}</p>
                   )}
                   <div className='flex flex-wrap gap-1'>
                     {group.sizes.map(size => (
@@ -253,7 +253,7 @@ const Category = ({ category }) => {
                         className={`text-xs px-2 py-1 border transition-all duration-150
                           ${selectedSizes.includes(size)
                             ? 'border-black bg-black text-white'
-                            : 'border-gray-300 text-gray-600 hover:border-gray-500'
+                            : 'border-stone-300 text-stone-600 hover:border-gray-500'
                           }`}
                       >
                         {size}
@@ -265,7 +265,7 @@ const Category = ({ category }) => {
               {selectedSizes.length > 0 && (
                 <p
                   onClick={() => setSelectedSizes([])}
-                  className='text-xs text-gray-400 cursor-pointer hover:text-black'
+                  className='text-xs text-stone-400 cursor-pointer hover:text-black'
                 >
                   Clear sizes
                 </p>
@@ -280,11 +280,11 @@ const Category = ({ category }) => {
       <div className='flex-1 px-2'>
         <div className='flex justify-between items-center mb-6'>
           <Title text1={`${category.toUpperCase()}'S`} text2={' COLLECTION'} />
-          <p className='text-sm text-gray-400'>{filterProducts.length} items</p>
+          <p className='text-sm text-stone-400 '>{filterProducts.length} items</p>
         </div>
 
         {filterProducts.length === 0 ? (
-          <div className='text-center py-20 text-gray-400 text-sm'>
+          <div className='text-center py-20 text-stone-400 text-sm'>
             No products found. Try adjusting your filters.
           </div>
         ) : (

@@ -33,7 +33,7 @@ const Navbar = () => {
         <img src={assets.logo} className='w-50' alt="" />
       </a>
 
-      <ul className='hidden sm:flex gap-7 text-md text-gray-500'>
+      <ul className='hidden sm:flex gap-7 text-md text-stone-500 '>
         <NavLink to='/men' className='flex flex-col items-center gap-1 hover:text-black hover:scale-110 transition-transform'>
           <p>MEN</p>
           <hr className='w-2/4 border-none h-[1.5px] bg-gray-700 hidden' />
@@ -52,7 +52,7 @@ const Navbar = () => {
 
         {/* Search Bar */}
         
-        <div className={`flex items-center border rounded-full px-2 transition-all duration-300 bg-white overflow-hidden ${showSearch ? 'w-100 h-10 border-gray-300' : 'w-10 border-transparent'}`}>
+        <div className={`flex items-center border rounded-full px-2 transition-all duration-300 bg-white overflow-hidden ${showSearch ? 'w-100 h-10 border-stone-300 ' : 'w-10 border-transparent'}`}>
           
           <img
             className='w-5 cursor-pointer hover:scale-125 transition-transform duration-200'
@@ -78,16 +78,16 @@ const Navbar = () => {
           />
           {showProfile && isLoggedIn && (
             <div style={{ right: 0, top: 'calc(100% + 6px)' }}
-              className='absolute w-56 bg-white border border-gray-100 rounded-xl overflow-hidden z-50 '>
+              className='absolute w-56 bg-white border border-stone-200 rounded-xl overflow-hidden z-50 '>
 
               {/* User info header */}
-              <div className='flex items-center gap-3 px-4 py-3 border-b border-gray-100'>
+              <div className='flex items-center gap-3 px-4 py-3 border-b border-stone-200 '>
                 <div className='w-9 h-9 rounded-full bg-black text-white flex items-center justify-center text-xs font-medium flex-shrink-0 '>
                   {user?.name?.slice(0,2).toUpperCase()}
                 </div>
                 <div className='min-w-0'>
                   <p className='text-sm font-medium truncate'>{user?.name}</p>
-                  <p className='text-xs text-gray-400 truncate'>{user?.email}</p>
+                  <p className='text-xs text-stone-400 truncate'>{user?.email}</p>
                 </div>
               </div>
 
@@ -100,14 +100,14 @@ const Navbar = () => {
                 ].map(item => (
                   <button key={item.path}
                     onClick={() => { navigate(item.path); setShowProfile(false) }}
-                    className='w-full text-left text-sm px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 cursor-pointer'>
+                    className='w-full text-left text-sm px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors text-stone-700 cursor-pointer'>
                     {item.label}
                   </button>
                 ))}
               </div>
 
               {/* Sign out */}
-              <div className='p-1.5 border-t border-gray-100'>
+              <div className='p-1.5 border-t border-stone-200 '>
                 <button onClick={logout}
                   className='w-full text-left text-sm px-3 py-2.5 rounded-lg text-red-400 hover:bg-red-50 transition-colors cursor-pointer'>
                   Sign out
@@ -135,7 +135,7 @@ const Navbar = () => {
 
       {/* Sidebar for small screens */}
       <div className={`absolute top-0 right-0 bottom-0 overflow-hidden z-50 bg-white transition-all ${visible ? 'w-full' : 'w-0'} sm:hidden`}>
-        <div className="flex flex-col text-gray-600">
+        <div className="flex flex-col text-stone-600">
           <div onClick={() => setVisible(false)} className="flex items-center gap-4 p-3 cursor-pointer">
             <img src={assets.dropdown_icon} className='h-4 rotate-180' alt="" />
             <p>Back</p>

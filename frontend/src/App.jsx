@@ -18,42 +18,52 @@ import Footwear from './pages/Footwear'
 import Accessories from './pages/Accessories'
 import Kids from './pages/Kids'
 import Search from './pages/Search'
-import AnalyticsDashboard from './pages/AnalyticsDashboard'
 import { ToastContainer } from 'react-toastify'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import Profile from './pages/Profile'
 import DeliveryStatus from './pages/DeliveryStatus'
+import AnalyticsDashboard from './pages/AnalyticsDashboard'
+import IntelUpload    from './pages/IntelUpload'
+import IntelDashboard from './pages/IntelDashboard'
+import IntelCustomers from './pages/IntelCustomers'
+import IntelInsights  from './pages/IntelInsights'
+import { useAnalytics } from './hooks/useAnalytics'
 
 const App = () => {
+  useAnalytics()  // mounts page_view + click/hover/keypress/mouse-move tracking
   return (
     <div className='overflow-x-hidden'>
       <ToastContainer />
       <Routes>
         <Route path='/analytics' element={<AnalyticsDashboard />} />
+        <Route path='/intel'                         element={<IntelUpload />} />
+        <Route path='/intel/dashboard/:jobId'        element={<IntelDashboard />} />
+        <Route path='/intel/customers/:jobId'        element={<IntelCustomers />} />
+        <Route path='/intel/insights/:jobId'         element={<IntelInsights />} />
         <Route path='/*' element={
           <>
             <Navbar />
             <Routes>
-              <Route path='/' element={<Home />} />
-              <Route path='/search' element={<Search />} />
-              <Route path='/men' element={<Men />} />
-              <Route path='/women' element={<Women />} />
-              <Route path='/kids' element={<Kids />} />
-              <Route path='/footwear' element={<Footwear />} />
+              <Route path='/'            element={<Home />} />
+              <Route path='/search'      element={<Search />} />
+              <Route path='/men'         element={<Men />} />
+              <Route path='/women'       element={<Women />} />
+              <Route path='/kids'        element={<Kids />} />
+              <Route path='/footwear'    element={<Footwear />} />
               <Route path='/accessories' element={<Accessories />} />
-              <Route path='/about' element={<About />} />
-              <Route path='/cart' element={<Cart />} />
-              <Route path='/contact' element={<Contact />} />
-              <Route path='/login' element={<Login />} />
-              <Route path='/orders' element={<Orders />} />
-              <Route path='/topwear' element={<Topwear />} />
-              <Route path='/bottomwear' element={<Bottomwear />} />
-              <Route path='/profile' element={<Profile />} />
-              <Route path='/placeorder' element={<PlaceOrder />} />
-              <Route path='/privacy' element={<PrivacyPolicy />} />
+              <Route path='/about'       element={<About />} />
+              <Route path='/cart'        element={<Cart />} />
+              <Route path='/contact'     element={<Contact />} />
+              <Route path='/login'       element={<Login />} />
+              <Route path='/orders'      element={<Orders />} />
+              <Route path='/topwear'     element={<Topwear />} />
+              <Route path='/bottomwear'  element={<Bottomwear />} />
+              <Route path='/profile'     element={<Profile />} />
+              <Route path='/placeorder'  element={<PlaceOrder />} />
+              <Route path='/privacy'     element={<PrivacyPolicy />} />
               <Route path='/product/:productId' element={<Product />} />
-              <Route path='/delivery' element={<DeliveryStatus />} />
-              <Route path='*' element={<p className='p-10'>Not Found</p>} />
+              <Route path='/delivery'    element={<DeliveryStatus />} />
+              <Route path='*'            element={<p className='p-10'>Not Found</p>} />
             </Routes>
             <Footer />
           </>

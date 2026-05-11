@@ -1,58 +1,93 @@
-# ── Dependencies ──────────────────────────────────────────────────────────────
-node_modules/
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-
-# ── Environment variables (never commit these) ────────────────────────────────
+# =============================================================================
+#  Secrets — DO NOT commit these
+# =============================================================================
 .env
 .env.local
-.env.development
-.env.production
-*.env
+.env.*.local
+backend/.env
+admin/.env
+frontend/.env
 
-# ── Python virtual environments ───────────────────────────────────────────────
+# =============================================================================
+#  Python
+# =============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+eggs/
+.eggs/
+*.egg-info/
+*.egg
+.venv/
 venv/
 env/
-.venv/
 ENV/
 
-# ── Build outputs ─────────────────────────────────────────────────────────────
+# =============================================================================
+#  Node / Vite
+# =============================================================================
+node_modules/
+.vite/
 dist/
-build/
-*.egg-info/
-
-# ── Database files ────────────────────────────────────────────────────────────
-*.db
-*.sqlite
-*.sqlite3
-trendhive.db
-
-# ── Logs ──────────────────────────────────────────────────────────────────────
+.parcel-cache/
+.next/
+.cache/
 *.log
-logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# ── OS files ──────────────────────────────────────────────────────────────────
-.DS_Store
-Thumbs.db
-desktop.ini
-
-# ── Editor files ──────────────────────────────────────────────────────────────
+# =============================================================================
+#  Editors / OS
+# =============================================================================
 .vscode/
 .idea/
 *.swp
 *.swo
+.DS_Store
+Thumbs.db
+desktop.ini
 
-# ── Vite / React ──────────────────────────────────────────────────────────────
-dist/
-dist-ssr/
-*.local
+# =============================================================================
+#  Local data (regenerable)
+# =============================================================================
+backend/uploads/
+backend/static/images/*.jpg
+backend/static/images/*.jpeg
+backend/static/images/*.png
+backend/static/images/*.webp
+backend/static/images/*.gif
+!backend/static/images/.gitkeep
 
-# ── Products JSON (generated from assets) ────────────────────────────────────
-backend/products.json
+# Old backend that was renamed during the migration
+backend_old/
 
-# Frontend build output — built by Dockerfile on HF Spaces
-frontend/dist/
-frontend/node_modules/
+# =============================================================================
+#  ML — heavy artifacts that don't belong in git
+# =============================================================================
+backend/app/ML/datasets/
+backend/app/ML/plots/
+backend/app/ML/outputs_n_insights/
+*.ipynb
+*.csv
+
+# Keep the trained model artifacts so the pipeline runs out-of-the-box
+!backend/app/ML/artifacts/*.pkl
+!backend/app/ML/artifacts/*.pt
+
+# =============================================================================
+#  Misc
+# =============================================================================
+*.sqlite
+*.db
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/

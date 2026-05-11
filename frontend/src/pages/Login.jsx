@@ -1,6 +1,7 @@
 import React, { useState,useContext } from 'react'
 import { toast } from 'react-toastify'
 import { ShopContext } from '../context/ShopContext'
+import { trackLogin, trackSignup } from '../hooks/useAnalytics'
 
 
 const Login = () => {
@@ -8,6 +9,7 @@ const Login = () => {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [submitting, setSubmitting] = useState(false)
   const { navigate, setUser } = useContext(ShopContext)
   const [currentState, setCurrentState] = useState('Login')
 
@@ -15,6 +17,7 @@ const Login = () => {
 
   const onSubmitHandler = async (event) => {
     event.preventDefault()
+    setSubmitting(true)
 
     const endpoint = currentState === 'Login' ? '/api/auth/login' : '/api/auth/signup'
     const body = currentState === 'Login'
@@ -38,15 +41,22 @@ const Login = () => {
       localStorage.setItem('th_token', data.token)
       setUser({ id: data.user_id, name: data.name, email: data.email })
       localStorage.setItem('th_user', JSON.stringify({ id: data.user_id, name: data.name, email: data.email }))
+
+      // RFM tracking
+      if (currentState === 'Login') trackLogin(data.user_id)
+      else                          trackSignup(data.user_id)
+
       toast.success(currentState === 'Login' ? 'Welcome back!' : 'Account created!')
       navigate('/')
     } catch {
       toast.error('Could not connect to server')
+    } finally {
+      setSubmitting(false)
     }
   }
 
   return (
-    <form onSubmit={onSubmitHandler} className='flex flex-col items-center w-[90%] sm:max-w-96 m-auto mt-14 gap-4 text-gray-800'>
+    <form onSubmit={onSubmitHandler} className='flex flex-col items-center w-[90%] sm:max-w-96 m-auto mt-14 gap-4 text-stone-800 '>
       <div className='inline-flex items-center gap-2 mb-2 mt-10'>
         <p className='prata-regular text-3xl'>{currentState}</p> 
       </div>
@@ -61,7 +71,7 @@ const Login = () => {
           : <p onClick={()=>setCurrentState('Login')} className='cursor-pointer'>Login Here</p>
         }
       </div>
-      <button className='bg-black text-white font-light px-8 py-2 mt-4 cursor-pointer'>{currentState==="Login"?"Sign In":"Sign Up"}</button>
+      <button disabled={submitting} className='bg-stone-900 text-white font-light px-8 py-2 mt-4 cursor-pointer disabled:opacity-50'>{submitting ? 'Working…' : (currentState==="Login"?"Sign In":"Sign Up")}</button>
     </form>
   )
 }
