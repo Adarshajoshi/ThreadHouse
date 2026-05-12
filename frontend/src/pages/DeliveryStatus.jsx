@@ -39,8 +39,8 @@ const DeliveryStatus = () => {
     return (
       <div className='border-t pt-16 px-4 min-h-[60vh] flex flex-col items-center justify-center text-center'>
         <p className='text-5xl mb-4'>📦</p>
-        <p className='text-lg font-medium text-stone-600 '>Order not found</p>
-        <p className='text-sm text-stone-400 mt-1'>This order may not exist or has been removed.</p>
+        <p className='text-lg font-medium text-gray-600 '>Order not found</p>
+        <p className='text-sm text-gray-400 mt-1'>This order may not exist or has been removed.</p>
         <button
           onClick={() => navigate('/orders')}
           className='mt-6 border px-6 py-2 text-sm hover:bg-black hover:text-white transition-colors'>
@@ -60,7 +60,7 @@ const DeliveryStatus = () => {
       {/* Back button */}
       <button
         onClick={() => navigate('/orders')}
-        className='flex items-center gap-2 text-sm text-stone-500 hover:text-black transition-colors mb-8'>
+        className='flex items-center gap-2 text-sm text-gray-500 hover:text-black transition-colors mb-8'>
         ← Back to orders
       </button>
 
@@ -70,12 +70,12 @@ const DeliveryStatus = () => {
           <div className='text-2xl mb-1'>
             <Title text1={'TRACK'} text2={' ORDER'} />
           </div>
-          <p className='font-mono text-sm text-stone-500 '>{order.orderId}</p>
-          <p className='text-xs text-stone-400 mt-1'>Placed on {order.date}</p>
+          <p className='font-mono text-sm text-gray-500 '>{order.orderId}</p>
+          <p className='text-xs text-gray-400 mt-1'>Placed on {order.date}</p>
         </div>
         <div className='flex items-center gap-2 border rounded-full px-4 py-2 text-sm self-start'>
           <span className={`w-2 h-2 rounded-full ${order.status === 'Delivered' ? 'bg-green-500' : 'bg-orange-400 animate-pulse'}`}></span>
-          <span className='text-stone-600 '>{ETA[order.status]}</span>
+          <span className='text-gray-600 '>{ETA[order.status]}</span>
         </div>
       </div>
 
@@ -95,7 +95,7 @@ const DeliveryStatus = () => {
               <div className={`w-7 h-7 rounded-full flex items-center justify-center z-10 border-2 transition-all
                 ${done   ? 'bg-black border-black' : ''}
                 ${active ? 'bg-white border-black' : ''}
-                ${pending? 'bg-white border-stone-200 ' : ''}
+                ${pending? 'bg-white border-gray-200 ' : ''}
               `}>
                 {done && (
                   <svg width='10' height='10' viewBox='0 0 10 10' fill='none'>
@@ -107,7 +107,7 @@ const DeliveryStatus = () => {
               {/* Label */}
               <p className={`text-center mt-2 text-xs leading-tight px-1
                 ${active  ? 'font-medium text-black' : ''}
-                ${done    ? 'text-stone-500 ' : ''}
+                ${done    ? 'text-gray-500 ' : ''}
                 ${pending ? 'text-gray-300' : ''}
               `}>
                 {step}
@@ -119,19 +119,19 @@ const DeliveryStatus = () => {
 
       {/* Info cards */}
       <div className='grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10'>
-        <div className='bg-stone-50 rounded-sm p-4'>
-          <p className='text-xs uppercase tracking-widest text-stone-400 mb-2'>Deliver to</p>
+        <div className='bg-gray-50 rounded-sm p-4'>
+          <p className='text-xs uppercase tracking-widest text-gray-400 mb-2'>Deliver to</p>
           <p className='font-medium text-sm'>{di.firstName} {di.lastName}</p>
-          <p className='text-xs text-stone-500 mt-1'>{di.street}</p>
-          <p className='text-xs text-stone-500 '>{di.city}{di.state ? `, ${di.state}` : ''} {di.zipCode}</p>
-          <p className='text-xs text-stone-500 '>{di.country}</p>
-          <p className='text-xs text-stone-500 mt-1'>{di.phone}</p>
+          <p className='text-xs text-gray-500 mt-1'>{di.street}</p>
+          <p className='text-xs text-gray-500 '>{di.city}{di.state ? `, ${di.state}` : ''} {di.zipCode}</p>
+          <p className='text-xs text-gray-500 '>{di.country}</p>
+          <p className='text-xs text-gray-500 mt-1'>{di.phone}</p>
         </div>
-        <div className='bg-stone-50 rounded-sm p-4'>
-          <p className='text-xs uppercase tracking-widest text-stone-400 mb-2'>Payment</p>
+        <div className='bg-gray-50 rounded-sm p-4'>
+          <p className='text-xs uppercase tracking-widest text-gray-400 mb-2'>Payment</p>
           <p className='font-medium text-sm uppercase'>{order.paymentMethod}</p>
-          <p className='text-xs text-stone-500 mt-1'>Total: {currency}{order.total}.00</p>
-          <p className='text-xs text-stone-500 mt-3 uppercase tracking-widest'>Status</p>
+          <p className='text-xs text-gray-500 mt-1'>Total: {currency}{order.total}.00</p>
+          <p className='text-xs text-gray-500 mt-3 uppercase tracking-widest'>Status</p>
           <div className='flex items-center gap-2 mt-1'>
             <span className={`w-2 h-2 rounded-full ${STATUS_COLORS[order.status] || 'bg-gray-400'}`}></span>
             <span className='text-sm font-medium'>{order.status}</span>
@@ -141,15 +141,15 @@ const DeliveryStatus = () => {
 
       {/* Timeline */}
       <div className='mb-10'>
-        <p className='text-xs uppercase tracking-widest text-stone-400 mb-4'>Activity</p>
-        <div className='border-l-2 border-stone-200 ml-2 pl-5 flex flex-col gap-5'>
+        <p className='text-xs uppercase tracking-widest text-gray-400 mb-4'>Activity</p>
+        <div className='border-l-2 border-gray-200 ml-2 pl-5 flex flex-col gap-5'>
           {timeline.map((event, i) => (
             <div key={i} className='relative'>
               <span className={`absolute -left-7 top-1 w-2.5 h-2.5 rounded-full border-2 border-white
                 ${i === 0 ? 'bg-black' : 'bg-gray-300'}`}>
               </span>
-              <p className='text-xs text-stone-400 mb-0.5'>{i === 0 ? 'Most recent' : `${i + 1} steps ago`}</p>
-              <p className='text-sm font-medium text-stone-800 '>{event}</p>
+              <p className='text-xs text-gray-400 mb-0.5'>{i === 0 ? 'Most recent' : `${i + 1} steps ago`}</p>
+              <p className='text-sm font-medium text-gray-800 '>{event}</p>
             </div>
           ))}
         </div>
@@ -157,14 +157,14 @@ const DeliveryStatus = () => {
 
       {/* Items */}
       <div>
-        <p className='text-xs uppercase tracking-widest text-stone-400 mb-4'>Items in this order</p>
+        <p className='text-xs uppercase tracking-widest text-gray-400 mb-4'>Items in this order</p>
         <div className='border rounded-sm divide-y'>
           {order.items.map((item, i) => (
             <div key={i} className='flex items-center gap-4 p-4'>
-              <img src={`/${item.image[0]}`} alt={item.name} className='w-14 h-16 object-cover bg-stone-50 ' />
+              <img src={`/${item.image[0]}`} alt={item.name} className='w-14 h-16 object-cover bg-gray-50 ' />
               <div className='flex-1 min-w-0'>
                 <p className='text-sm font-medium truncate'>{item.name}</p>
-                <p className='text-xs text-stone-500 mt-1'>Size: {item.size} · Qty: {item.quantity}</p>
+                <p className='text-xs text-gray-500 mt-1'>Size: {item.size} · Qty: {item.quantity}</p>
               </div>
               <p className='text-sm font-medium font-mono'>{currency}{item.price}</p>
             </div>

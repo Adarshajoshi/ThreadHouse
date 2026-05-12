@@ -16,7 +16,7 @@ const SearchBar = () => {
     }, [search]);
   return showSearch?(
     <div className={`transition-all duration-300 overflow-hidden border-t border-b br-gray-50 text-center ${showSearch?'max-h-40 opacity-100':'max-h-0 opacity-0'} `}>
-      <div className='inline-flex items-center justify-center border border-stone-400 px-5 py-2 my-5 mx-3 rounded-full w-3/4 sm:w-1/2'>
+      <div className='inline-flex items-center justify-center border border-gray-400 px-5 py-2 my-5 mx-3 rounded-full w-3/4 sm:w-1/2'>
         <input 
         value={search} 
         onChange={(e)=>setSearch(e.target.value)} 

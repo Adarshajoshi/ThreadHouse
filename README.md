@@ -1,4 +1,4 @@
-git checkout --ours .# ThreadHouse — E-commerce + Customer Intelligence
+# ThreadHouse — E-commerce + Customer Intelligence
 
 A full-stack e-commerce site that tracks user behaviour and segments
 customers in real time. Two ideas glued together: a working shop, and an

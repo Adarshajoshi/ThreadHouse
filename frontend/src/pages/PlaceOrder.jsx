@@ -49,7 +49,7 @@ const PlaceOrder = () => {
   }
 
   const inputClass = (field) =>
-    `border rounded py-1.5 px-3.5 w-full outline-none focus:border-black transition-colors ${errors[field] ? 'border-red-400' : 'border-stone-300 '}`
+    `border rounded py-1.5 px-3.5 w-full outline-none focus:border-black transition-colors ${errors[field] ? 'border-red-400' : 'border-gray-300 '}`
 
   return (
     <div className='flex flex-col sm:flex-row justify-between gap-4 pt-5 sm:pt-14 min-h-[80vh] border-t'>
@@ -114,7 +114,7 @@ const PlaceOrder = () => {
           <div className='flex gap-3 flex-col lg:flex-row'>
 <div onClick={() => setMethod('cod')} className='flex items-center gap-3 border p-2 px-3 cursor-pointer'>
               <p className={`min-w-3.5 h-3.5 border rounded-full ${method === 'cod' ? 'bg-green-400' : ''}`}></p>
-              <p className='text-stone-500 text-sm font-medium mx-4'>CASH ON DELIVERY</p>
+              <p className='text-gray-500 text-sm font-medium mx-4'>CASH ON DELIVERY</p>
             </div>
           </div>
           <div className='w-full text-end mt-8'>

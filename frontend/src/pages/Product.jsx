@@ -68,20 +68,20 @@ const Product = () => {
             <p className='pl-2'>(122)</p>
           </div>
           <p className='mt-5 text-3xl font-medium'>{currency}{productData.price}</p>
-          <p className='mt-5 text-stone-500 md:w-4/5'>{productData.description}</p>
+          <p className='mt-5 text-gray-500 md:w-4/5'>{productData.description}</p>
           <div className='flex flex-col gap-4 my-8'>
             <p>Select Size</p>
             <div className='flex gap-2'>
               {
                 productData.sizes.map((item,index)=>(
-                  <button onClick={()=>setSize(item)} className={`border py-2 px-4 cursor-pointer ${item===size?'bg-black text-white':'bg-stone-100 hover:bg-black hover:text-white'}`} key={index}>{item}</button>
+                  <button onClick={()=>setSize(item)} className={`border py-2 px-4 cursor-pointer ${item===size?'bg-black text-white':'bg-gray-100 hover:bg-black hover:text-white'}`} key={index}>{item}</button>
                 ))
               }
             </div>
           </div>
           <button onClick={()=>addToCart(productData._id,size)} className='bg-black text-white px-8 py-3 text-sm active:bg-gray-700 cursor-pointer'>ADD TO CART</button>
           <hr className='mt-8 sm:w-4/5'/>
-          <div className='text-sm text-stone-500 mt-5 flex flex-col gap-1'>
+          <div className='text-sm text-gray-500 mt-5 flex flex-col gap-1'>
             <p>100% Original Product</p>
             <p>Cash on delivery is available on this product</p>
             <p>Easy return and exchange policy within 7 days</p>
@@ -95,7 +95,7 @@ const Product = () => {
           <b className='border px-5 py-3 text-sm'>Description</b>
           <p className='border px-5 py-3 text-sm'>Reviews(122)</p>
         </div>
-        <div className='flex flex-col gap-4 border px-6 py-6 text-sm text-stone-500 '>
+        <div className='flex flex-col gap-4 border px-6 py-6 text-sm text-gray-500 '>
           <p>An e-commerce website is an online platform that facilitates the buying and selling of products or services over the internet. It serves as a virtual storefront where businesses showcase their products, and customers can browse, select, and purchase items from the comfort of their homes.</p>
           <p>Our platform provides a seamless shopping experience with high-resolution imagery, detailed sizing guides, and real-time inventory updates. Each product is carefully curated to ensure the highest quality, accompanied by secure payment gateways and reliable delivery services to bring your favorite styles directly to your doorstep.</p>
         </div>

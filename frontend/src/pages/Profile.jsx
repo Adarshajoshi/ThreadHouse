@@ -23,7 +23,7 @@ const Profile = () => {
             {user.name?.charAt(0).toUpperCase()}
           </div>
           <h2 className='text-xl font-medium'>{user.name}</h2>
-          <p className='text-stone-500 text-sm mt-1'>{user.email}</p>
+          <p className='text-gray-500 text-sm mt-1'>{user.email}</p>
 
           <div className='mt-6 flex flex-col gap-3'>
             <button
@@ -43,25 +43,25 @@ const Profile = () => {
 
         {/* Recent Orders */}
         <div className='flex-1'>
-          <p className='text-sm font-medium uppercase tracking-widest text-stone-500 mb-4'>Recent Orders</p>
+          <p className='text-sm font-medium uppercase tracking-widest text-gray-500 mb-4'>Recent Orders</p>
           {orders.length === 0 ? (
-            <p className='text-stone-400 text-sm'>No orders yet.</p>
+            <p className='text-gray-400 text-sm'>No orders yet.</p>
           ) : (
             <div className='flex flex-col gap-3'>
               {orders.slice(0, 3).map((order, i) => (
                 <div key={i} className='border rounded-sm p-3 text-sm'>
                   <div className='flex justify-between items-center mb-1'>
-                    <span className='font-mono text-xs text-stone-500 '>{order.orderId}</span>
+                    <span className='font-mono text-xs text-gray-500 '>{order.orderId}</span>
                     <span className='text-xs font-medium'>{currency}{order.total}</span>
                   </div>
                   <div className='flex justify-between items-center'>
-                    <span className='text-stone-500 '>{order.date}</span>
-                    <span className='text-xs px-2 py-0.5 bg-stone-100 rounded-full'>{order.status}</span>
+                    <span className='text-gray-500 '>{order.date}</span>
+                    <span className='text-xs px-2 py-0.5 bg-gray-100 rounded-full'>{order.status}</span>
                   </div>
                 </div>
               ))}
               {orders.length > 3 && (
-                <button onClick={() => navigate('/orders')} className='text-sm text-stone-500 underline text-left'>
+                <button onClick={() => navigate('/orders')} className='text-sm text-gray-500 underline text-left'>
                   View all {orders.length} orders
                 </button>
               )}
