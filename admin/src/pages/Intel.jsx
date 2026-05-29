@@ -3,19 +3,6 @@ import axios from 'axios'
 import { backendUrl } from '../App'
 import { toast } from 'react-toastify'
 
-// =====================================================================
-// Intel — admin entry point to the ML pipeline.
-// Talks to the ThreadHouse intel routes:
-//   POST /api/upload                       (CSV upload, kicks off pipeline)
-//   GET  /api/results/{id}/status          (poll until status === "complete")
-//   GET  /api/results/{id}/overview        (KPIs + segment counts)
-//   GET  /api/results/{id}/top-customers   (CLV leaderboard)
-//   GET  /api/results/{id}/insights        (auto-generated insights)
-//   GET  /api/results/{id}/customers       (paginated profiles + filters)
-//   POST /api/results/{id}/query           (natural-language Q&A via Groq)
-//   POST /api/admin/train                  (one-shot HVR model training)
-// =====================================================================
-
 const JOB_KEY = 'admin_intel_job_id'
 const POLL_MS = 1500
 
@@ -32,16 +19,14 @@ const Intel = ({ token }) => {
   const [uploading, setUploading] = useState(false)
   const fileRef = useRef(null)
 
-  // NL query
+
   const [question, setQuestion] = useState('')
   const [answer, setAnswer]     = useState('')
   const [asking, setAsking]     = useState(false)
 
   const authHeaders = { Authorization: `Bearer ${token}`, token }
 
-  // -----------------------------------------------------------------
   // Upload
-  // -----------------------------------------------------------------
   const onUpload = async (file) => {
     if (!file) return
     if (!file.name.toLowerCase().endsWith('.csv')) {
@@ -69,9 +54,7 @@ const Intel = ({ token }) => {
     }
   }
 
-  // -----------------------------------------------------------------
   // Poll job status until complete / failed
-  // -----------------------------------------------------------------
   useEffect(() => {
     if (!jobId) return
     let cancelled = false
@@ -82,12 +65,12 @@ const Intel = ({ token }) => {
         if (cancelled) return
         setJobStatus(r.data)
         if (r.data.status === 'complete' || r.data.status === 'failed') {
-          return  // stop polling
+          return  
         }
         setTimeout(poll, POLL_MS)
       } catch (err) {
         if (!cancelled) {
-          // 404 means an old job id from a wiped DB
+          
           if (err?.response?.status === 404) {
             localStorage.removeItem(JOB_KEY)
             setJobId('')
@@ -102,9 +85,7 @@ const Intel = ({ token }) => {
     return () => { cancelled = true }
   }, [jobId])
 
-  // -----------------------------------------------------------------
   // When job is complete, fetch overview + insights + top customers
-  // -----------------------------------------------------------------
   useEffect(() => {
     if (jobStatus?.status !== 'complete') return
     let cancelled = false
@@ -127,9 +108,7 @@ const Intel = ({ token }) => {
     return () => { cancelled = true }
   }, [jobStatus?.status, jobId])
 
-  // -----------------------------------------------------------------
   // Load customers (with filters)
-  // -----------------------------------------------------------------
   const fetchCustomers = async () => {
     if (!jobId) return
     const params = new URLSearchParams()
@@ -148,9 +127,7 @@ const Intel = ({ token }) => {
     if (jobStatus?.status === 'complete') fetchCustomers()
   }, [jobStatus?.status, jobId, filters.segment, filters.isAnomaly])
 
-  // -----------------------------------------------------------------
   // NL query
-  // -----------------------------------------------------------------
   const askQuestion = async (e) => {
     e.preventDefault()
     if (!jobId || !question.trim()) return
@@ -172,9 +149,7 @@ const Intel = ({ token }) => {
     }
   }
 
-  // -----------------------------------------------------------------
-  // Run pipeline on the live shop data (no upload needed).
-  // -----------------------------------------------------------------
+  // Run pipeline on the live shop data
   const [runningLive, setRunningLive] = useState(false)
   const runOnCurrentUsers = async () => {
     setRunningLive(true)
@@ -193,9 +168,7 @@ const Intel = ({ token }) => {
     }
   }
 
-  // -----------------------------------------------------------------
   // HVR train (one-off)
-  // -----------------------------------------------------------------
   const [training, setTraining] = useState(false)
   const trainHVR = async () => {
     setTraining(true)
@@ -224,9 +197,7 @@ const Intel = ({ token }) => {
     }
   }
 
-  // -----------------------------------------------------------------
   // Render
-  // -----------------------------------------------------------------
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between flex-wrap gap-4">

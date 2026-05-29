@@ -1,11 +1,3 @@
-"""
-Auth dependencies shared across routers.
-
-* get_current_user_id (required)  - 401s if no/invalid token
-* get_optional_user_id (optional) - returns None if no/invalid token (used by
-                                    POST /api/orders/ so guest checkout still works)
-"""
-
 import os
 from typing import Optional
 
@@ -66,9 +58,7 @@ def get_optional_user_id(
     except Exception:
         return None
 
-# ---------------------------------------------------------------------------
 # Admin guard
-# ---------------------------------------------------------------------------
 
 import asyncpg as _asyncpg
 from fastapi import Depends as _Depends

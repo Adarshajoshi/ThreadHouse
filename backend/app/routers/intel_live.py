@@ -1,21 +1,3 @@
-"""
-Run the ML pipeline on the *live* shop data (the orders table) instead of
-requiring an uploaded CSV.
-
-Flow:
-  1. Pull every order from the orders table.
-  2. Expand each order's items[] array into per-line-item rows.
-  3. Map onto the columns the pipeline schema-detector recognises
-     (CustomerID / InvoiceDate / InvoiceNo / StockCode / Description /
-      Quantity / UnitPrice).
-  4. Write to a temp CSV under settings.UPLOAD_DIR.
-  5. Insert a Job row + kick off run_full_pipeline as a background task.
-  6. Return the new job_id - frontend polls /api/results/{id}/status as usual.
-
-Endpoint:
-  POST /api/intel/run-on-current-users   (admin-only)
-"""
-
 import csv
 import json
 import os

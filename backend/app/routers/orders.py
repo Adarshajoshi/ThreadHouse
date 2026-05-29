@@ -1,5 +1,3 @@
-"""Orders router. Uses asyncpg pool from app.db.asyncpg_pool."""
-
 import json
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException

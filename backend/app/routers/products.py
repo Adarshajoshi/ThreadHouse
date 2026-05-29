@@ -1,20 +1,3 @@
-"""
-Products router for the admin panel.
-
-Matches the admin frontend's expected shape:
-  GET  /api/product/list   -> {success, products: [...]}
-  POST /api/product/add    -> multipart form, returns {success, message}
-  POST /api/product/remove -> {id} body, returns {success, message}
-
-Notes
------
-* The admin frontend sends fields named `image1`...`image4` for up to 4 images.
-* Uploaded files are written to backend/static/images/ and served via the
-  /static mount declared in main.py. The DB stores their public URLs.
-* Responses use {success: bool, ...} because the admin frontend reads
-  `response.data.success`.
-"""
-
 import json
 import time
 import uuid

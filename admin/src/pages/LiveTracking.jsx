@@ -11,10 +11,10 @@ const LiveTracking = ({ token }) => {
   const [segments, setSegments] = useState(null)
   const [loading,  setLoading]  = useState(true)
   const [feed,     setFeed]     = useState([])
-  const [wsState,  setWsState]  = useState('connecting')   // connecting | open | closed
+  const [wsState,  setWsState]  = useState('connecting')   
   const [windowMin, setWindowMin] = useState(5)
-  const [detailUser, setDetailUser] = useState(null)        // user_id of currently-shown drawer
-  const [detail, setDetail]         = useState(null)        // drawer payload
+  const [detailUser, setDetailUser] = useState(null)       
+  const [detail, setDetail]         = useState(null)       
 
   const wsRef = useRef(null)
 

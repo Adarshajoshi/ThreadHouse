@@ -3,13 +3,7 @@ import { useLocation } from 'react-router-dom'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
-// ---------------------------------------------------------------------------
 // Session + identity
-// ---------------------------------------------------------------------------
-//
-// session_id: stable per browser tab. Resets when the tab is closed.
-// user_id:    pulled from localStorage `th_user` (set by ShopContext on login).
-//             Re-read on every event so login/logout takes effect immediately.
 
 const SESSION_ID = (() => {
   let id = sessionStorage.getItem('th_session')
@@ -30,9 +24,7 @@ function currentUserId() {
   }
 }
 
-// ---------------------------------------------------------------------------
 // Low-level send (used by every helper)
-// ---------------------------------------------------------------------------
 
 async function sendEvent(payload) {
   try {
@@ -51,19 +43,10 @@ async function sendEvent(payload) {
       }),
     })
   } catch {
-    // analytics is best-effort; never break the UX
   }
 }
 
-// ---------------------------------------------------------------------------
 // RFM-specific helpers
-// ---------------------------------------------------------------------------
-//
-// These fire dedicated event_types so the backend (and the live dashboard)
-// can distinguish browsing noise from purchase intent. They feed RFM via:
-//   - Recency:  any of these events update "last seen / last bought"
-//   - Frequency: count of purchase + add_to_cart events per user_id
-//   - Monetary:  monetary_value field on purchase / cart events
 
 export const trackProductView = (productId, price, page) =>
   sendEvent({
@@ -143,9 +126,7 @@ export const trackSearch = (query, page) =>
 export const trackEvent = (event_type, fields = {}) =>
   sendEvent({ event_type, ...fields })
 
-// ---------------------------------------------------------------------------
 // Hook: passive page/click/hover/keypress/mouse-move tracking
-// ---------------------------------------------------------------------------
 
 export function useAnalytics() {
   const location = useLocation()
@@ -200,7 +181,7 @@ export function useAnalytics() {
       }, 600)
     }
 
-    // Throttled mouse position tracking
+    // mouse position tracking
     let lastMouseSent = 0
     const onMouseMove = (e) => {
       const now = Date.now()

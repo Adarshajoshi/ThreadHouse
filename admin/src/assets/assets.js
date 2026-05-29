@@ -1,12 +1,6 @@
-// Admin asset map.
-// These point to URLs that work without local image files. Inline SVG data-URIs
-// are used so the admin panel renders even on a fresh clone before any image
-// assets are added. Replace any of these with a real .png/.svg if desired.
-
 const svg = (markup) =>
   'data:image/svg+xml;utf8,' + encodeURIComponent(markup)
 
-// Simple "ThreadHouse" logo: monochrome text on transparent background.
 const logo = svg(
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40" width="200" height="40">
      <text x="0" y="28" font-family="Helvetica, Arial, sans-serif" font-weight="700"

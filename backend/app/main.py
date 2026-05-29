@@ -1,24 +1,7 @@
-"""
-Unified FastAPI app.
-
-Routers:
-  Intel / Customer Intelligence (SQLAlchemy ORM, ThreadHouse):
-    - /api/upload, /api/results/{job_id}/..., /api/admin/train
-
-  Shop side (asyncpg, ported from old ecommerce backend):
-    - /api/auth/{signup,login,admin/login}
-    - /api/orders/...
-    - /api/analytics/{event,summary,events}
-
-Both share the same Postgres database (mindless), but use different drivers:
-  * SQLAlchemy creates: jobs, customer_profiles, insights
-  * asyncpg creates:    users, orders, analytics_events
-"""
 
 import os
 from pathlib import Path
 
-# Load .env BEFORE any router imports - auth.py reads JWT_SECRET at import time.
 from dotenv import load_dotenv
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
@@ -41,15 +24,13 @@ from app.routers import analytics, auth, orders, products, admin_orders, intel_l
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # 1) SQLAlchemy: create intel tables (jobs, customer_profiles, insights).
     try:
-        from app.db import models  # noqa: F401  (registers tables on Base)
+        from app.db import models  
         Base.metadata.create_all(bind=engine)
         print("SQLAlchemy tables ready: jobs, customer_profiles, insights.")
     except Exception as e:
         print(f"SQLAlchemy startup error: {e}")
 
-    # 2) asyncpg: create shop tables (users, orders, analytics_events).
     try:
         await init_asyncpg_pool()
     except Exception as e:
@@ -71,8 +52,6 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    # Allow any localhost / 127.0.0.1 port during dev (Vite, admin panel, etc.).
-    # In production, replace with explicit allow_origins.
     allow_origin_regex=r"http://(localhost|127\.0\.0\.1):\d+",
     allow_credentials=False,
     allow_methods=["*"],

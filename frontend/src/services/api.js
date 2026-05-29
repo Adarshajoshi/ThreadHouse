@@ -82,12 +82,6 @@ export async function getAnalyticsSummary() {
     return res.json()
 }
 
-
-// ---------------------------------------------------------------------------
-// Global 401 handler — auto-logout when a JWT expires.
-// Wraps `fetch` once at module load. If any API call returns 401 *after* a
-// token was set, we clear localStorage and redirect to /login.
-// ---------------------------------------------------------------------------
 ;(function installAutoLogout() {
     if (typeof window === 'undefined' || window.__th_auto_logout_installed__) return
     window.__th_auto_logout_installed__ = true
@@ -109,9 +103,7 @@ export async function getAnalyticsSummary() {
 })()
 
 
-// ---------------------------------------------------------------------------
-// Typed wrappers (JSDoc) — IDEs (VS Code) will catch field-name typos here.
-// ---------------------------------------------------------------------------
+// Typed wrappers (JSDoc)
 
 /**
  * @typedef {Object} OrderPayload
@@ -150,7 +142,7 @@ export async function signup(name, email, password) {
 }
 
 /** @param {OrderPayload} payload
- *  @param {string} [token] - optional bearer token, attaches user_id to the order
+ *  @param {string} [token] 
  */
 export async function placeOrder(payload, token) {
     const headers = { 'Content-Type': 'application/json' }

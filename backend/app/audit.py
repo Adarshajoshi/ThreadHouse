@@ -1,8 +1,3 @@
-"""
-Minimal audit logger. Writes one row to audit_log per significant action.
-Call from any handler:  await audit(conn, actor_id, action, target, detail)
-"""
-
 import json
 from typing import Any, Optional
 import asyncpg

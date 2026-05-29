@@ -13,9 +13,7 @@ router = APIRouter()
 
 SECRET_KEY = config("SECRET_KEY", default="")
 
-# Lazy Groq client - instantiated on first use so an unset / empty
-# GROQ_API_KEY doesn't break app import (e.g. when the natural-language
-# query feature isn't being used).
+
 _groq_client = None
 
 

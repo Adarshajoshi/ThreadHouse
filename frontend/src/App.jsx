@@ -30,7 +30,7 @@ import IntelInsights  from './pages/IntelInsights'
 import { useAnalytics } from './hooks/useAnalytics'
 
 const App = () => {
-  useAnalytics()  // mounts page_view + click/hover/keypress/mouse-move tracking
+  useAnalytics() 
   return (
     <div className='overflow-x-hidden'>
       <ToastContainer />
