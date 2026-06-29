@@ -16,9 +16,8 @@ services:
         sync: false
 
   # Frontend - React/Vite
-  - type: web
+  - type: static
     name: threadhouse-frontend
-    runtime: node
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
