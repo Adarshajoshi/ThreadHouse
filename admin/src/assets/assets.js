@@ -2,11 +2,9 @@ const svg = (markup) =>
   'data:image/svg+xml;utf8,' + encodeURIComponent(markup)
 
 const logo = svg(
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40" width="200" height="40">
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 40" width="180" height="40">
      <text x="0" y="28" font-family="Helvetica, Arial, sans-serif" font-weight="700"
            font-size="24" fill="#0f766e">ThreadHouse</text>
-     <text x="146" y="28" font-family="Helvetica, Arial, sans-serif"
-           font-size="14" fill="#78716c">admin</text>
    </svg>`
 )
 

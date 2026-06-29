@@ -14,6 +14,7 @@ const Intel = ({ token }) => {
   const [insights, setInsights]       = useState([])
   const [customers, setCustomers]     = useState([])
   const [filters, setFilters]         = useState({ segment: '', isAnomaly: '' })
+  const [customerSearch, setCustomerSearch] = useState('')
   const [loading, setLoading]         = useState(false)
 
   const [uploading, setUploading] = useState(false)
@@ -114,7 +115,7 @@ const Intel = ({ token }) => {
     const params = new URLSearchParams()
     if (filters.segment)   params.append('segment',     filters.segment)
     if (filters.isAnomaly) params.append('is_anomaly',  filters.isAnomaly)
-    params.append('limit', 200)
+    params.append('limit', 5000)
     try {
       const r = await axios.get(`${backendUrl}/api/results/${jobId}/customers?${params.toString()}`, { headers: authHeaders })
       setCustomers(r.data.customers || [])
@@ -168,22 +169,6 @@ const Intel = ({ token }) => {
     }
   }
 
-  // HVR train (one-off)
-  const [training, setTraining] = useState(false)
-  const trainHVR = async () => {
-    setTraining(true)
-    try {
-      const r = await axios.post(`${backendUrl}/api/admin/train`, {}, { headers: authHeaders })
-      const data = r.data
-      if (data.status === 'success') toast.success(`Trained. AUC = ${data.auc}`)
-      else toast.error(data.message || 'Training failed')
-    } catch (err) {
-      toast.error('Training endpoint failed')
-    } finally {
-      setTraining(false)
-    }
-  }
-
   const switchJob = () => {
     const next = window.prompt('Paste a job_id to switch to (or leave blank to clear):', jobId)
     if (next === null) return
@@ -209,13 +194,6 @@ const Intel = ({ token }) => {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={trainHVR}
-            disabled={training}
-            className="text-xs border border-stone-300 px-3 py-1.5 rounded-lg hover:border-teal-600 disabled:opacity-50"
-          >
-            {training ? 'Training…' : 'Train HVR model'}
-          </button>
           <button
             onClick={switchJob}
             className="text-xs border border-stone-300 px-3 py-1.5 rounded-lg hover:border-teal-600"
@@ -315,20 +293,20 @@ const Intel = ({ token }) => {
               </div>
             )}
         </Card>
-
-        {/* Insights */}
-        <Card title="Auto-generated insights">
-          {insights.length === 0
-            ? <Empty loading={loading} text="No insights yet." />
-            : (
-              <div className="space-y-3">
-                {insights.map((ins, i) => (
-                  <InsightCard key={i} ins={ins} />
-                ))}
-              </div>
-            )}
-        </Card>
       </div>
+
+      {/* Insights — full width, 2-column horizontal grid */}
+      <Card title="Auto-generated insights">
+        {insights.length === 0
+          ? <Empty loading={loading} text="No insights yet." />
+          : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {insights.map((ins, i) => (
+                <InsightCard key={i} ins={ins} />
+              ))}
+            </div>
+          )}
+      </Card>
 
       {/* NL query */}
       {jobStatus?.status === 'complete' && (
@@ -357,61 +335,74 @@ const Intel = ({ token }) => {
       )}
 
       {/* Customer table with filters */}
-      {jobStatus?.status === 'complete' && (
-        <Card title={`Customers (${customers.length})`}>
-          <div className="flex gap-2 mb-3 flex-wrap">
-            <select
-              value={filters.segment}
-              onChange={e => setFilters(f => ({ ...f, segment: e.target.value }))}
-              className="text-xs border border-stone-300 rounded-lg px-2 py-1.5 bg-white"
-            >
-              <option value="">All segments</option>
-              {overview?.segment_distribution && Object.keys(overview.segment_distribution).map(s => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
-            <select
-              value={filters.isAnomaly}
-              onChange={e => setFilters(f => ({ ...f, isAnomaly: e.target.value }))}
-              className="text-xs border border-stone-300 rounded-lg px-2 py-1.5 bg-white"
-            >
-              <option value="">Normal + Anomalies</option>
-              <option value="true">Anomalies only</option>
-              <option value="false">Normal only</option>
-            </select>
-          </div>
-          {customers.length === 0
-            ? <Empty loading={false} text="No customers match these filters." />
-            : (
-              <div className="overflow-x-auto max-h-96 overflow-y-auto">
-                <table className="w-full text-xs">
-                  <thead className="text-stone-400 uppercase tracking-wider sticky top-0 bg-white">
-                    <tr>
-                      <th className="text-left py-2">ID</th>
-                      <th className="text-left py-2">Segment</th>
-                      <th className="text-right py-2">R / F / M</th>
-                      <th className="text-right py-2">CLV</th>
-                      <th className="text-right py-2">HVR</th>
-                      <th className="text-right py-2">Anomaly</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {customers.map((c, i) => (
-                      <tr key={i} className="border-t border-stone-200">
-                        <td className="py-1.5 font-mono">{c.customer_id}</td>
-                        <td className="py-1.5">{c.segment}</td>
-                        <td className="py-1.5 text-right tabular-nums">{c.recency?.toFixed?.(0)} / {c.frequency} / {c.monetary?.toFixed?.(0)}</td>
-                        <td className="py-1.5 text-right tabular-nums">{c.clv_12months != null ? `$${c.clv_12months.toFixed(0)}` : '—'}</td>
-                        <td className="py-1.5 text-right tabular-nums">{c.hvr_probability != null ? `${(c.hvr_probability * 100).toFixed(0)}%` : '—'}</td>
-                        <td className="py-1.5 text-right">{c.is_anomaly ? <span className="text-red-600">{c.anomaly_type || 'yes'}</span> : '—'}</td>
+      {jobStatus?.status === 'complete' && (() => {
+        const filtered = customers.filter(c =>
+          customerSearch.trim() === '' ||
+          c.customer_id.toLowerCase().includes(customerSearch.trim().toLowerCase())
+        )
+        return (
+          <Card title={`Customers (${filtered.length}${filtered.length !== customers.length ? ` of ${customers.length}` : ''})`}>
+            <div className="flex gap-2 mb-3 flex-wrap">
+              <input
+                type="text"
+                value={customerSearch}
+                onChange={e => setCustomerSearch(e.target.value)}
+                placeholder="Search by ID…"
+                className="text-xs border border-stone-300 rounded-lg px-2 py-1.5 bg-white outline-none focus:border-teal-600 w-40"
+              />
+              <select
+                value={filters.segment}
+                onChange={e => setFilters(f => ({ ...f, segment: e.target.value }))}
+                className="text-xs border border-stone-300 rounded-lg px-2 py-1.5 bg-white"
+              >
+                <option value="">All segments</option>
+                {overview?.segment_distribution && Object.keys(overview.segment_distribution).map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+              <select
+                value={filters.isAnomaly}
+                onChange={e => setFilters(f => ({ ...f, isAnomaly: e.target.value }))}
+                className="text-xs border border-stone-300 rounded-lg px-2 py-1.5 bg-white"
+              >
+                <option value="">Normal + Anomalies</option>
+                <option value="true">Anomalies only</option>
+                <option value="false">Normal only</option>
+              </select>
+            </div>
+            {filtered.length === 0
+              ? <Empty loading={false} text="No customers match these filters." />
+              : (
+                <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: '480px' }}>
+                  <table className="w-full text-xs">
+                    <thead className="text-stone-400 uppercase tracking-wider sticky top-0 bg-white z-10">
+                      <tr>
+                        <th className="text-left py-2 pr-3">ID</th>
+                        <th className="text-left py-2">Segment</th>
+                        <th className="text-right py-2">R / F / M</th>
+                        <th className="text-right py-2">CLV</th>
+                        <th className="text-right py-2">HVR</th>
+                        <th className="text-right py-2">Anomaly</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-        </Card>
-      )}
+                    </thead>
+                    <tbody>
+                      {filtered.map((c, i) => (
+                        <tr key={i} className="border-t border-stone-200 hover:bg-stone-50">
+                          <td className="py-1.5 font-mono pr-3">{c.customer_id}</td>
+                          <td className="py-1.5">{c.segment}</td>
+                          <td className="py-1.5 text-right tabular-nums">{c.recency?.toFixed?.(0)} / {c.frequency} / {c.monetary?.toFixed?.(0)}</td>
+                          <td className="py-1.5 text-right tabular-nums">{c.clv_12months != null ? `$${c.clv_12months.toFixed(0)}` : '—'}</td>
+                          <td className="py-1.5 text-right tabular-nums">{c.hvr_probability != null ? `${(c.hvr_probability * 100).toFixed(0)}%` : '—'}</td>
+                          <td className="py-1.5 text-right">{c.is_anomaly ? <span className="text-red-600">{c.anomaly_type || 'yes'}</span> : '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+          </Card>
+        )
+      })()}
     </div>
   )
 }
@@ -454,13 +445,6 @@ const SegmentBars = ({ dist }) => {
       ))}
     </ul>
   )
-}
-
-const INSIGHT_ICONS = {
-  'Executive Summary':       '📊',
-  'Segment Recommendations': '🎯',
-  'Anomaly Report':          '⚠️',
-  'Priority Alerts':         '🔔',
 }
 
 const PRIORITY_CARD = {
@@ -534,17 +518,13 @@ const BulletBody = ({ lines }) => {
 
 const InsightCard = ({ ins }) => {
   const theme = PRIORITY_CARD[ins.priority] || PRIORITY_CARD[3]
-  const icon  = INSIGHT_ICONS[ins.title] || '💡'
   const lines = (ins.body || '').split('\n')
   const isBullet = lines.some(l => l.trimStart().startsWith('•'))
 
   return (
     <div className={`rounded-xl border ${theme.bg} ${theme.border} p-4`}>
       <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <span className="text-base leading-none">{icon}</span>
-          <span className="text-sm font-semibold text-stone-800">{ins.title}</span>
-        </div>
+        <span className="text-sm font-semibold text-stone-800">{ins.title}</span>
         <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${theme.badge}`}>
           {theme.label}
         </span>
