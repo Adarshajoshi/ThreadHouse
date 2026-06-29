@@ -321,19 +321,11 @@ const Intel = ({ token }) => {
           {insights.length === 0
             ? <Empty loading={loading} text="No insights yet." />
             : (
-              <ul className="space-y-3">
+              <div className="space-y-3">
                 {insights.map((ins, i) => (
-                  <li key={i} className="border-l-4 pl-3 py-1" style={{ borderColor: priorityColor(ins.priority) }}>
-                    <div className="text-sm font-semibold text-stone-800">{ins.title}</div>
-                    <div className="text-xs text-stone-600 mt-0.5 space-y-0.5">
-                      {(ins.body || '').split('\n').map((line, j) => (
-                        <div key={j} className={line.startsWith('    ') ? 'pl-4 text-stone-500 ' : ''}>{line}</div>
-                      ))}
-                    </div>
-                    <div className="text-[10px] uppercase tracking-wider text-stone-400 mt-0.5">{ins.category}</div>
-                  </li>
+                  <InsightCard key={i} ins={ins} />
                 ))}
-              </ul>
+              </div>
             )}
         </Card>
       </div>
@@ -461,6 +453,120 @@ const SegmentBars = ({ dist }) => {
         </li>
       ))}
     </ul>
+  )
+}
+
+const INSIGHT_ICONS = {
+  'Executive Summary':       '📊',
+  'Segment Recommendations': '🎯',
+  'Anomaly Report':          '⚠️',
+  'Priority Alerts':         '🔔',
+}
+
+const PRIORITY_CARD = {
+  1: { bg: 'bg-gradient-to-b from-red-50 to-white',    border: 'border-red-200',    badge: 'bg-red-100 text-red-700',    label: 'Critical' },
+  2: { bg: 'bg-gradient-to-b from-amber-50 to-white',  border: 'border-amber-200',  badge: 'bg-amber-100 text-amber-700', label: 'High' },
+  3: { bg: 'bg-gradient-to-b from-stone-50 to-white',  border: 'border-stone-200',  badge: 'bg-stone-100 text-stone-500', label: 'Info' },
+}
+
+const BULLET_PRIORITY_COLORS = {
+  Critical: 'bg-red-100 text-red-700',
+  High:     'bg-orange-100 text-orange-700',
+  Medium:   'bg-amber-100 text-amber-700',
+  Low:      'bg-stone-100 text-stone-500',
+}
+
+const BulletBody = ({ lines }) => {
+  const groups = []
+  let current = null
+  for (const line of lines) {
+    if (line.startsWith('•')) {
+      if (current) groups.push(current)
+      current = { bullet: line.slice(1).trim(), subs: [] }
+    } else if ((line.startsWith('    ') || line.startsWith('\t')) && current) {
+      current.subs.push(line.trim())
+    } else if (line.trim()) {
+      if (current) groups.push(current)
+      groups.push({ bullet: line.trim(), subs: [] })
+      current = null
+    }
+  }
+  if (current) groups.push(current)
+
+  return (
+    <div className="space-y-2">
+      {groups.map((g, i) => {
+        const bracketMatch = g.bullet.match(/\[(\w+)\]/)
+        const priority = bracketMatch?.[1]
+        const text = g.bullet.replace(/\[[\w\s]+\]\s*-?\s*/, '').trim()
+        return (
+          <div key={i} className="bg-white/70 rounded-lg p-2.5 border border-stone-100">
+            <div className="flex items-start gap-2">
+              {priority && (
+                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0 mt-0.5 ${BULLET_PRIORITY_COLORS[priority] || BULLET_PRIORITY_COLORS.Low}`}>
+                  {priority.toUpperCase()}
+                </span>
+              )}
+              <span className="text-xs text-stone-700 font-medium leading-snug">{text}</span>
+            </div>
+            {g.subs.length > 0 && (
+              <div className="mt-1.5 pl-2 space-y-0.5 border-l-2 border-stone-100 ml-1">
+                {g.subs.map((sub, j) => {
+                  const colonIdx = sub.indexOf(':')
+                  if (colonIdx > -1) {
+                    return (
+                      <div key={j} className="flex gap-1.5 text-[11px]">
+                        <span className="text-stone-400 font-semibold shrink-0">{sub.slice(0, colonIdx)}:</span>
+                        <span className="text-stone-600">{sub.slice(colonIdx + 1).trim()}</span>
+                      </div>
+                    )
+                  }
+                  return <div key={j} className="text-[11px] text-stone-600">{sub}</div>
+                })}
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+const InsightCard = ({ ins }) => {
+  const theme = PRIORITY_CARD[ins.priority] || PRIORITY_CARD[3]
+  const icon  = INSIGHT_ICONS[ins.title] || '💡'
+  const lines = (ins.body || '').split('\n')
+  const isBullet = lines.some(l => l.trimStart().startsWith('•'))
+
+  return (
+    <div className={`rounded-xl border ${theme.bg} ${theme.border} p-4`}>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <span className="text-base leading-none">{icon}</span>
+          <span className="text-sm font-semibold text-stone-800">{ins.title}</span>
+        </div>
+        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${theme.badge}`}>
+          {theme.label}
+        </span>
+      </div>
+
+      {isBullet
+        ? <BulletBody lines={lines} />
+        : (
+          <div className="space-y-2">
+            {lines.filter(l => l.trim()).map((para, i) => (
+              <p key={i} className="text-xs text-stone-600 leading-relaxed">{para}</p>
+            ))}
+          </div>
+        )
+      }
+
+      {ins.category && (
+        <div className="mt-3 pt-2 border-t border-stone-200/60">
+          <span className="text-[10px] uppercase tracking-wider text-stone-400">{ins.category}</span>
+        </div>
+      )}
+    </div>
   )
 }
 
