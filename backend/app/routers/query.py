@@ -8,6 +8,7 @@ from groq import Groq
 from app.core.config import settings
 from decouple import config
 import json
+import re
 
 router = APIRouter()
 
@@ -58,23 +59,24 @@ def natural_language_query(
         f"- Anomalies: {sum(1 for p in profiles if p.is_anomaly)}\n"
     )
 
-    response = _get_groq_client().chat.completions.create(
+    groq_response = _get_groq_client().chat.completions.create(
         model="qwen/qwen3-32b",
         messages=[
             {
                 "role": "system",
-                "content": "You are a customer analytics assistant. Answer questions using the provided data. Be specific and cite numbers.",
+                "content": "You are a customer analytics assistant. Answer questions using the provided data. Be specific and cite numbers./no_think",
             },
             {
                 "role": "user",
-                "content": f"Data:\n{context}\n\nQuestion: {request.question}",
+                "content": f"Data:\n{context}\n\nQuestion: {request.question}/no_think",
             },
         ],
         temperature=0.3,
         max_tokens=400,
     )
-
+    raw_content = groq_response.choices[0].message.content
+    clean_content = re.sub(r"<think>.*?</think>", "", raw_content, flags=re.DOTALL).strip()
     return QueryResponse(
         question=request.question,
-        answer=response.choices[0].message.content,
+        answer=clean_content,
     )

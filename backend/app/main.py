@@ -35,11 +35,16 @@ async def lifespan(app: FastAPI):
         await init_asyncpg_pool()
     except Exception as e:
         print(f"asyncpg startup error: {e}")
+        raise
 
     try:
         yield
     finally:
-        await close_asyncpg_pool()
+        try:
+            await close_asyncpg_pool()
+            print("asyncpg pool closed")
+        except Exception as e:
+            print(f"Warning: error closing pool: {e}")
 
 
 app = FastAPI(
