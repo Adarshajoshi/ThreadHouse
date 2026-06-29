@@ -68,7 +68,7 @@ async def run_on_current_users(
                 "StockCode":   str(it.get("_id", "")),
                 "Description": it.get("name", "")[:200],
                 "Quantity":    quantity,
-                "InvoiceDate": invoice_date.strftime("%d-%m-%Y %H:%M") if invoice_date else "",
+                "InvoiceDate": invoice_date.strftime("%Y-%m-%dT%H:%M") if invoice_date else "",
                 "UnitPrice":   price,
                 "CustomerID":  customer_id,
                 "Country":     it.get("country", "Unknown"),

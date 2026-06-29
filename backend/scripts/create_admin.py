@@ -28,8 +28,6 @@ def hash_password(plain: str) -> str:
 async def main(args: argparse.Namespace) -> int:
     conn = await asyncpg.connect(**DB_CONFIG)
     try:
-        # Make sure the users table exists (it should, but be defensive in case
-        # the user runs this script before ever booting uvicorn).
         await conn.execute(
             """
             CREATE TABLE IF NOT EXISTS users (

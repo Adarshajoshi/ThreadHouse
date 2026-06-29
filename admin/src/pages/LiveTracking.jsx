@@ -11,10 +11,11 @@ const LiveTracking = ({ token }) => {
   const [segments, setSegments] = useState(null)
   const [loading,  setLoading]  = useState(true)
   const [feed,     setFeed]     = useState([])
-  const [wsState,  setWsState]  = useState('connecting')   
+  const [wsState,  setWsState]  = useState('connecting')
   const [windowMin, setWindowMin] = useState(5)
-  const [detailUser, setDetailUser] = useState(null)       
-  const [detail, setDetail]         = useState(null)       
+  const [detailUser, setDetailUser] = useState(null)
+  const [detail, setDetail]         = useState(null)
+  const [segFilter, setSegFilter]   = useState('')
 
   const wsRef = useRef(null)
 
@@ -197,8 +198,12 @@ const LiveTracking = ({ token }) => {
                 {Object.entries(segments.segment_counts)
                   .sort((a, b) => b[1] - a[1])
                   .map(([name, n]) => (
-                    <li key={name} className="flex items-center justify-between text-sm">
-                      <span className="text-stone-700">{name}</span>
+                    <li
+                      key={name}
+                      className={`flex items-center justify-between text-sm cursor-pointer rounded px-1 py-0.5 transition-colors ${segFilter === name ? 'bg-teal-50 text-teal-800 font-semibold' : 'hover:bg-stone-50 text-stone-700'}`}
+                      onClick={() => setSegFilter(f => f === name ? '' : name)}
+                    >
+                      <span>{name}</span>
                       <span className="font-medium text-stone-800">{n}</span>
                     </li>
                   ))}
@@ -237,6 +242,83 @@ const LiveTracking = ({ token }) => {
           }
         </Card>
       </div>
+
+      {/* Segmented users table */}
+      {segments?.users?.length > 0 && (() => {
+        const filtered = segFilter
+          ? segments.users.filter(u => u.segment === segFilter)
+          : segments.users
+        const segmentNames = [...new Set(segments.users.map(u => u.segment))].sort()
+        return (
+          <Card title={`Segmented customers${segFilter ? ` — ${segFilter}` : ''} (${filtered.length})`}>
+            <div className="flex items-center gap-2 mb-3 flex-wrap">
+              <select
+                value={segFilter}
+                onChange={e => setSegFilter(e.target.value)}
+                className="text-xs border border-stone-300 rounded-lg px-2 py-1.5 bg-white"
+              >
+                <option value="">All segments ({segments.users.length})</option>
+                {segmentNames.map(s => (
+                  <option key={s} value={s}>{s} ({segments.segment_counts[s] ?? 0})</option>
+                ))}
+              </select>
+              {segFilter && (
+                <button
+                  onClick={() => setSegFilter('')}
+                  className="text-xs text-stone-500 hover:text-teal-700 underline"
+                >
+                  Clear filter
+                </button>
+              )}
+            </div>
+            <div className="overflow-x-auto max-h-96 overflow-y-auto">
+              <table className="w-full text-xs">
+                <thead className="text-stone-400 uppercase tracking-wider sticky top-0 bg-white">
+                  <tr>
+                    <th className="text-left py-2 pr-3">Customer</th>
+                    <th className="text-left py-2 pr-3">Segment</th>
+                    <th className="text-right py-2 pr-3">R / F / M</th>
+                    <th className="text-right py-2 pr-3">Spent</th>
+                    <th className="text-right py-2 pr-3">Orders</th>
+                    <th className="text-right py-2">Last order</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((u, i) => (
+                    <tr
+                      key={u.user_id ?? i}
+                      className="border-t border-stone-100 hover:bg-stone-50 cursor-pointer"
+                      onClick={() => setDetailUser(u.user_id)}
+                    >
+                      <td className="py-1.5 pr-3">
+                        <div className="font-medium text-stone-800">{u.name || '(unnamed)'}</div>
+                        <div className="text-stone-400 truncate max-w-[140px]">{u.email}</div>
+                      </td>
+                      <td className="py-1.5 pr-3">
+                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${segmentBadgeColor(u.segment)}`}>
+                          {u.segment}
+                        </span>
+                      </td>
+                      <td className="py-1.5 pr-3 text-right tabular-nums text-stone-600">
+                        {u.r} / {u.f} / {u.m}
+                      </td>
+                      <td className="py-1.5 pr-3 text-right tabular-nums font-medium text-stone-800">
+                        ${u.monetary.toFixed(2)}
+                      </td>
+                      <td className="py-1.5 pr-3 text-right tabular-nums text-stone-600">
+                        {u.frequency}
+                      </td>
+                      <td className="py-1.5 text-right text-stone-500 whitespace-nowrap">
+                        {u.last_order_at ? new Date(u.last_order_at).toLocaleDateString() : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        )
+      })()}
 
       {/* Recent events from snapshot (covers events that arrived before we connected) */}
       <Card title="Recent events (snapshot)">
@@ -354,6 +436,23 @@ const Card = ({ title, children }) => (
     {children}
   </div>
 )
+
+const segmentBadgeColor = (seg) => {
+  switch (seg) {
+    case 'Champions':         return 'bg-green-100 text-green-800'
+    case 'Loyal Customers':   return 'bg-emerald-100 text-emerald-800'
+    case 'Potential Loyalists': return 'bg-teal-100 text-teal-800'
+    case 'New Customers':     return 'bg-sky-100 text-sky-800'
+    case 'Promising':         return 'bg-blue-100 text-blue-800'
+    case 'Need Attention':    return 'bg-amber-100 text-amber-800'
+    case 'About to Sleep':    return 'bg-orange-100 text-orange-800'
+    case 'At Risk':           return 'bg-red-100 text-red-700'
+    case 'Cant Lose Them':    return 'bg-rose-100 text-rose-800'
+    case 'Hibernating':       return 'bg-stone-100 text-stone-600'
+    case 'Lost':              return 'bg-stone-200 text-stone-500'
+    default:                  return 'bg-stone-100 text-stone-600'
+  }
+}
 
 const eventTypeColor = (t) => {
   switch (t) {
