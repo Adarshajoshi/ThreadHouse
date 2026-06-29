@@ -37,7 +37,6 @@ const Sidebar = () => {
         </NavLink>
 
         <NavLink className={linkClass} to="/intel">
-          <span className="w-5 h-5 flex items-center justify-center text-base">&#129504;</span>
           <p className="hidden md:block">Intel (ML)</p>
         </NavLink>
 
