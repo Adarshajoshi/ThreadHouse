@@ -46,24 +46,30 @@ def detect_anomalies(df: pd.DataFrame) -> pd.DataFrame:
     X_scaled = scaler.fit_transform(X_raw).astype(np.float32)
 
     if not os.path.exists(model_path):
-        print("Autoencoder not found — using statistical anomaly detection")
+        print("Autoencoder not found - using statistical anomaly detection")
         return _statistical_fallback(df)
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model  = Autoencoder(input_dim=8, latent_dim=2).to(device)
-    model.load_state_dict(
-        torch.load(model_path, map_location=device)
-    )
-    model.eval()
+    try:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        model  = Autoencoder(input_dim=8, latent_dim=2).to(device)
+        model.load_state_dict(
+            torch.load(model_path, map_location=device)
+        )
+        model.eval()
 
-    X_tensor = torch.tensor(X_scaled).to(device)
-    with torch.no_grad():
-        X_reconstructed = model(X_tensor).cpu().numpy()
+        X_tensor = torch.tensor(X_scaled).to(device)
+        with torch.no_grad():
+            X_reconstructed = model(X_tensor).cpu().numpy()
 
-    reconstruction_errors = np.mean(
-        (X_scaled - X_reconstructed) ** 2,
-        axis=1
-    )
+        reconstruction_errors = np.mean(
+            (X_scaled - X_reconstructed) ** 2,
+            axis=1
+        )
+    except Exception as e:
+        # Autoencoder present but could not be loaded/applied (version mismatch,
+        # corrupt weights, etc.). Fall back to the statistical detector.
+        print(f"Autoencoder load/inference failed ({e}) - using statistical fallback")
+        return _statistical_fallback(df)
 
     threshold_95 = np.percentile(reconstruction_errors, 95)
     threshold_99 = np.percentile(reconstruction_errors, 99)
@@ -79,15 +85,15 @@ def detect_anomalies(df: pd.DataFrame) -> pd.DataFrame:
             return "Normal"
         if row["Monetary"] == 0 or row["TotalItems"] == 0:
             return "Return Abuser"
-    
+
         avg_items = df["AvgItemsPerOrder"].mean()
         if row["AvgItemsPerOrder"] > (avg_items * 3):
             return "Bulk Buyer / Reseller"
-        
+
         avg_monetary = df["Monetary"].mean()
         if row["Frequency"] == 1 and row["Monetary"] > (avg_monetary * 2):
             return "One-Hit High Spender"
-        
+
         avg_recency = df["Recency"].mean()
         if row["Recency"] > (avg_recency * 1.5) and row["Frequency"] <= 2:
             return "Ghost Customer"
@@ -95,13 +101,13 @@ def detect_anomalies(df: pd.DataFrame) -> pd.DataFrame:
 
     df["anomaly_type"] = df.apply(classify_anomaly, axis=1)
 
-    print(f"Anomaly detection complete — {df['is_anomaly'].sum()} flagged")
+    print(f"Anomaly detection complete - {df['is_anomaly'].sum()} flagged")
     return df
 
 
 def _statistical_fallback(df: pd.DataFrame) -> pd.DataFrame:
     """
-    If autoencoder model file is missing,
+    If the autoencoder model file is missing or fails to load,
     fall back to Z-score based anomaly detection.
     """
     from scipy import stats
@@ -121,5 +127,5 @@ def _statistical_fallback(df: pd.DataFrame) -> pd.DataFrame:
     )
     df["anomaly_type"] = "Erratic Behavior"
 
-    print(f"Statistical fallback anomaly detection — {df['is_anomaly'].sum()} flagged")
+    print(f"Statistical fallback anomaly detection - {df['is_anomaly'].sum()} flagged")
     return df

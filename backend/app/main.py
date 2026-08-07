@@ -15,10 +15,7 @@ from fastapi.staticfiles import StaticFiles
 from app.db.session import engine, Base
 from app.db.asyncpg_pool import close_asyncpg_pool, init_asyncpg_pool
 
-# Intel routers (SQLAlchemy)
 from app.routers import admin, query, results, upload
-
-# Shop routers (asyncpg)
 from app.routers import analytics, auth, orders, products, admin_orders, intel_live
 
 
@@ -63,31 +60,36 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Intel / CIE routers - match what frontend/src/services/api.js expects.
 app.include_router(upload.router,   prefix="/api",            tags=["Upload"])
 app.include_router(results.router,  prefix="/api",            tags=["Results"])
 app.include_router(query.router,    prefix="/api",            tags=["Query"])
 app.include_router(admin.router,    prefix="/api",            tags=["Admin"])
 
-# Shop routers - match what Login.jsx, ShopContext.jsx, useAnalytics.js expect.
 app.include_router(auth.router,      prefix="/api/auth",      tags=["Auth"])
 app.include_router(orders.router,    prefix="/api/orders",    tags=["Orders"])
 app.include_router(analytics.router, prefix="/api/analytics", tags=["Analytics"])
 
-# Legacy alias for admin/Login.jsx (POST /api/user/admin)
 app.include_router(auth.admin_alias_router, prefix="/api/user", tags=["Auth (legacy alias)"])
 
-# Admin panel singular-path endpoints.
 app.include_router(products.router,      prefix="/api/product", tags=["Products (admin)"])
 app.include_router(admin_orders.router,  prefix="/api/order",   tags=["Orders (admin)"])
 app.include_router(intel_live.router,    prefix="/api/intel",   tags=["Intel (live)"])
 
 
-# Static files (product images uploaded via the admin panel).
 import os as _os
 _STATIC_DIR = _os.path.join(_os.path.dirname(__file__), "..", "static")
 _os.makedirs(_os.path.join(_STATIC_DIR, "images"), exist_ok=True)
 app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
+
+_CATALOG_IMG_DIR = _os.path.join(
+    _os.path.dirname(__file__), "..", "..", "frontend", "public", "images"
+)
+if _os.path.isdir(_CATALOG_IMG_DIR):
+    app.mount(
+        "/catalog-images",
+        StaticFiles(directory=_CATALOG_IMG_DIR),
+        name="catalog-images",
+    )
 
 
 @app.get("/health")
@@ -95,7 +97,6 @@ def health():
     return {"status": "healthy"}
 
 
-# Optional: if the frontend has been built into ../frontend/dist, serve it.
 FRONTEND_DIST = os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist")
 
 if os.path.exists(FRONTEND_DIST):
@@ -119,6 +120,5 @@ else:
     def root():
         return {
             "message": "ThreadHouse + Customer Intelligence Engine API",
-            "note": "Frontend not built. Run: cd frontend && npm run build",
             "docs": "/docs",
         }

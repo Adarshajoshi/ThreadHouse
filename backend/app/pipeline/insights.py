@@ -1,24 +1,22 @@
 import json
 import pandas as pd
 from groq import Groq
-from app.core.config import settings
+from app.core.config import get_groq_key
 
-# Lazy Groq client - instantiate on first use to avoid import-time failures
-# when GROQ_API_KEY is unset.
 _groq_client = None
 
 
 def _get_groq_client() -> Groq:
     global _groq_client
     if _groq_client is None:
-        api_key = settings.GROQ_API_KEY
+        api_key = get_groq_key()
         if not api_key:
             raise RuntimeError("GROQ_API_KEY not configured")
         _groq_client = Groq(api_key=api_key)
     return _groq_client
 
 
-MODEL  = "qwen/qwen3-32b"
+MODEL  = "llama-3.3-70b-versatile"
 
 
 def _call_llm(prompt: str, max_tokens: int = 600, json_mode: bool = False) -> str:

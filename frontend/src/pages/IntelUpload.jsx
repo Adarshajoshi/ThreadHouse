@@ -71,7 +71,7 @@ export default function IntelUpload() {
           <div className="mb-6 bg-blue-950 border border-blue-800 rounded-xl px-5 py-4 flex items-center justify-between">
             <div>
               <p className="text-sm text-blue-200 font-medium">Previous analysis found</p>
-              <p className="text-xs text-blue-400 font-mono">{savedJobId.slice(0, 8)}...</p>
+              <p className="text-xs text-blue-400 font-mono select-all break-all">{savedJobId}</p>
             </div>
             <div className="flex gap-2">
               <button

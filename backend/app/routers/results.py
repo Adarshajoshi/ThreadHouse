@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.db.models import Job, CustomerProfile, Insight
 from app.auth_deps import get_current_admin
+from app.services.plots import build_plot_data, save_plots
 
 router = APIRouter()
 
@@ -47,6 +48,28 @@ def get_overview(job_id: str, db: Session = Depends(get_db)):
         "total_anomalies":      total_anomalies,
         "segment_distribution": segment_distribution
     }
+
+@router.get("/results/{job_id}/plots")
+def get_plots(job_id: str, db: Session = Depends(get_db)):
+    """
+    Chart-ready datasets for the intelligence dashboard, built from the stored
+    customer_profiles rows. Also renders and saves the charts as PNG files under
+    static/plots/<job_id>/ and returns their URLs in `images`.
+    """
+    profiles = db.query(CustomerProfile).filter(
+        CustomerProfile.job_id == job_id
+    ).all()
+
+    if not profiles:
+        raise HTTPException(status_code=404, detail="No results found")
+
+    data = build_plot_data(profiles)
+    try:
+        data["images"] = save_plots(job_id, profiles, data)
+    except Exception as e:
+        print(f"Chart image saving skipped for job {job_id}: {e}")
+        data["images"] = []
+    return data
 
 @router.get("/results/{job_id}/customers")
 def get_customers(
@@ -132,5 +155,3 @@ def get_top_customers(
             for c in customers
         ]
     }
-
-

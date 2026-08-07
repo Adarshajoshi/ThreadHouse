@@ -31,6 +31,8 @@ const ShopContextProvider = (props) => {
         setUser(null)
         localStorage.removeItem('th_token')
         localStorage.removeItem('th_user')
+        localStorage.removeItem(ORDERS_STORAGE_KEY)   // clear any legacy shared order cache
+        setOrders([])                                 // don't leak orders to the next account
         toast.success('Logged out successfully')
         navigate('/login')
         }
@@ -47,17 +49,49 @@ const ShopContextProvider = (props) => {
         catch { }
     }, [cartItems]);
 
-    const [orders, setOrders] = useState(() => {
-        try {
-            const saved = localStorage.getItem(ORDERS_STORAGE_KEY);
-            return saved ? JSON.parse(saved) : [];
-        } catch { return []; }
-    });
+    // Order history is fetched per-user from the backend (GET /api/orders/me),
+    // which returns ONLY the logged-in user's orders. It is intentionally not
+    // cached in a shared localStorage key — doing so previously leaked one
+    // account's orders to another account on the same browser.
+    const [orders, setOrders] = useState([]);
 
+    const _parseJSON = (v, fallback) => {
+        if (v == null) return fallback;
+        if (typeof v === 'string') { try { return JSON.parse(v); } catch { return fallback; } }
+        return v;
+    };
+
+    const fetchMyOrders = async () => {
+        const token = localStorage.getItem('th_token');
+        if (!token) { setOrders([]); return; }
+        try {
+            const res = await fetch(`${API_BASE}/api/orders/me`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (!res.ok) { setOrders([]); return; }
+            const data = await res.json();
+            const list = data.orders || [];
+            setOrders(list.map(o => ({
+                orderId:       o.order_id,
+                items:         _parseJSON(o.items, []),
+                deliveryInfo:  _parseJSON(o.delivery_info, {}),
+                paymentMethod: o.payment_method,
+                status:        o.status || 'Order Placed',
+                total:         o.total,
+                date:          o.created_at
+                    ? new Date(o.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
+                    : '',
+            })));
+        } catch {
+            setOrders([]);
+        }
+    };
+
+    // Reload orders whenever the logged-in user changes (login / logout / account switch).
     useEffect(() => {
-        try { localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(orders)); }
-        catch { }
-    }, [orders]);
+        fetchMyOrders();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user]);
 
     // ---- Wishlist (favorites) ----
     const [wishlist, setWishlist] = useState(() => {

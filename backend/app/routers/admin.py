@@ -118,9 +118,19 @@ def train_models(_admin: int = Depends(get_current_admin)):
         )
         model.fit(X_train_scaled, y_train, sample_weight=weights)
 
-        from sklearn.metrics import roc_auc_score
-        y_prob  = model.predict_proba(X_test_scaled)[:, 1]
-        auc     = roc_auc_score(y_test, y_prob)
+        from sklearn.metrics import (
+            roc_auc_score, accuracy_score, precision_score,
+            recall_score, f1_score, confusion_matrix,
+        )
+        y_prob = model.predict_proba(X_test_scaled)[:, 1]
+        y_pred = (y_prob >= 0.5).astype(int)
+
+        auc       = roc_auc_score(y_test, y_prob) if y_test.nunique() > 1 else None
+        accuracy  = accuracy_score(y_test, y_pred)
+        precision = precision_score(y_test, y_pred, zero_division=0)
+        recall    = recall_score(y_test, y_pred, zero_division=0)
+        f1        = f1_score(y_test, y_pred, zero_division=0)
+        cm        = confusion_matrix(y_test, y_pred).tolist()   # [[TN, FP], [FN, TP]]
 
         os.makedirs(settings.MODEL_DIR, exist_ok=True)
 
@@ -128,9 +138,43 @@ def train_models(_admin: int = Depends(get_current_admin)):
         joblib.dump(scaler,      os.path.join(settings.MODEL_DIR, "hvr_scaler.pkl"))
         joblib.dump(feature_cols,os.path.join(settings.MODEL_DIR, "hvr_features.pkl"))
 
+        # Save a confusion-matrix image under static/plots/hvr/
+        cm_image = None
+        try:
+            import matplotlib
+            matplotlib.use("Agg")
+            import matplotlib.pyplot as plt
+            from app.services.plots import STATIC_DIR
+            out_dir = STATIC_DIR / "plots" / "hvr"
+            out_dir.mkdir(parents=True, exist_ok=True)
+            fig, ax = plt.subplots(figsize=(5.0, 4.4))
+            ax.imshow(cm, cmap="Greys", vmin=0, vmax=max(max(r) for r in cm) or 1)
+            ax.set_xticks([0, 1]); ax.set_yticks([0, 1])
+            ax.set_xticklabels(["Predicted: Not HVR", "Predicted: HVR"])
+            ax.set_yticklabels(["Actual: Not HVR", "Actual: HVR"])
+            for i in range(2):
+                for j in range(2):
+                    ax.text(j, i, str(cm[i][j]), ha="center", va="center", fontsize=16)
+            ax.set_title("HVR Classifier - Confusion Matrix")
+            plt.setp(ax.get_xticklabels(), rotation=15, ha="right")
+            fig.tight_layout()
+            fig.savefig(out_dir / "confusion_matrix.png", dpi=150, facecolor="white")
+            plt.close(fig)
+            cm_image = "/static/plots/hvr/confusion_matrix.png"
+        except Exception as e:
+            print(f"Confusion-matrix image not saved: {e}")
+
         return {
-            "status":       "success",
-            "auc":          round(auc, 4),
+            "status":            "success",
+            "metrics": {
+                "auc":       round(auc, 4) if auc is not None else None,
+                "accuracy":  round(accuracy, 4),
+                "precision": round(precision, 4),
+                "recall":    round(recall, 4),
+                "f1_score":  round(f1, 4),
+                "confusion_matrix": cm,
+            },
+            "confusion_matrix_image": cm_image,
             "train_size":   int(train_mask.sum()),
             "test_size":    int((~train_mask).sum()),
             "features":     feature_cols,

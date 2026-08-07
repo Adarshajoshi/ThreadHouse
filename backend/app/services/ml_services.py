@@ -28,7 +28,7 @@ def run_full_pipeline(job_id: str, filepath: str):
 
     try:
         df_raw = pd.read_csv(filepath)
-        
+
         job = db.query(Job).filter(Job.id == job_id).first()
         job.row_count = len(df_raw)
         db.commit()
@@ -38,7 +38,7 @@ def run_full_pipeline(job_id: str, filepath: str):
             raise ValueError(f"Schema detection failed: {schema['missing']}")
 
         rfm_df = extract_rfm(df_raw, schema["mapping"])
-        rfm_df    = standardize_customer_id(rfm_df) 
+        rfm_df    = standardize_customer_id(rfm_df)
 
         scored_df = score_and_segment(rfm_df)
         scored_df = standardize_customer_id(scored_df)
@@ -50,7 +50,7 @@ def run_full_pipeline(job_id: str, filepath: str):
             scored_df["hvr_potential"]   = None
 
         clv_df = compute_clv(df_raw, schema["mapping"])
-        clv_df = standardize_customer_id(clv_df) 
+        clv_df = standardize_customer_id(clv_df)
         scored_df = scored_df.merge(
             clv_df[["CustomerID", "clv_12months", "clv_segment",
                     "prob_alive", "predicted_purchases_90d"]],
@@ -96,7 +96,7 @@ def run_full_pipeline(job_id: str, filepath: str):
         db.commit()
 
         insights = generate_all_insights(scored_df)
-        
+
         insight_objects = []
         for category, content in insights.items():
             insight = Insight(
@@ -114,6 +114,15 @@ def run_full_pipeline(job_id: str, filepath: str):
         job.status       = "complete"
         job.completed_at = datetime.utcnow()
         db.commit()
+
+        # Best-effort: render and save the dashboard charts locally
+        # (static/plots/<job_id>/*.png). Never fail the pipeline over this.
+        try:
+            from app.services.plots import save_plots
+            saved = save_plots(job_id, profiles)
+            print(f"Saved {len(saved)} chart images for job {job_id}")
+        except Exception as e:
+            print(f"Chart saving skipped for job {job_id}: {e}")
 
         print(f"Pipeline complete for job {job_id}")
 

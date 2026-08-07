@@ -125,9 +125,7 @@ async def remove_product(
     await audit(conn, None, "product.remove", str(pid_int))
     return {"success": True, "message": "Product deleted"}
 
-# ---------------------------------------------------------------------------
 # Product detail + bulk seed
-# ---------------------------------------------------------------------------
 
 import re as _re
 from fastapi import HTTPException as _HTTPException
@@ -154,13 +152,6 @@ async def seed_products(
     overwrite: bool = False,
     conn: asyncpg.Connection = Depends(get_asyncpg_conn),
 ):
-    """
-    Bulk-import the products array from
-    frontend/src/assets/frontend_assets/assets.js into the products table.
-
-    Useful when you want the admin panel and the shop to reflect the same
-    catalog. Set ?overwrite=true to wipe the products table first.
-    """
     assets_path = (
         Path(__file__).resolve().parent.parent.parent.parent
         / "frontend" / "src" / "assets" / "frontend_assets" / "assets.js"
@@ -173,9 +164,6 @@ async def seed_products(
 
     text = assets_path.read_text(encoding="utf-8")
 
-    # Extract the array literal between `export const products = [` and the
-    # matching closing bracket. Naive bracket counting is enough here because
-    # there are no escaped strings with literal `[` / `]` inside.
     m = _re.search(r"export\s+const\s+products\s*=\s*", text)
     if not m:
         raise _HTTPException(status_code=500, detail="Could not find `export const products` in assets.js")
@@ -208,8 +196,6 @@ async def seed_products(
     inserted = 0
     skipped = 0
     for p in products:
-        # If a product with the same name already exists (and we're not
-        # overwriting), skip it - prevents duplicate seeding.
         if not overwrite:
             exists = await conn.fetchval(
                 "SELECT id FROM products WHERE name = $1", p.get("name", "")
@@ -250,13 +236,6 @@ async def update_product(
     body: dict = Body(...),
     conn: asyncpg.Connection = Depends(get_asyncpg_conn),
 ):
-    """
-    Update product fields. Accepts any subset of:
-      name, description, price, category, subCategory, sizes (list),
-      bestseller (bool).
-    Image upload is not supported here - re-add the product if you need to
-    swap images.
-    """
     try:
         pid = int(product_id)
     except ValueError:

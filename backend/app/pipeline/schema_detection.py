@@ -3,6 +3,7 @@ import json
 from rapidfuzz import fuzz
 from groq import Groq
 from decouple import config
+from app.core.config import get_groq_key
 
 SECRET_KEY = config("SECRET_KEY", default="")
 
@@ -14,14 +15,14 @@ _groq_client = None
 def _get_groq_client() -> Groq:
     global _groq_client
     if _groq_client is None:
-        api_key = config("GROQ_API_KEY", default="")
+        api_key = get_groq_key()
         if not api_key:
             raise RuntimeError("GROQ_API_KEY not configured")
         _groq_client = Groq(api_key=api_key)
     return _groq_client
 
 
-MODEL  = "qwen/qwen3-32b"
+MODEL  = "llama-3.3-70b-versatile"
 
 COLUMN_PATTERNS = {
     "customer_id": [

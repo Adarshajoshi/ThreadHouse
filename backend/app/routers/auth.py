@@ -184,9 +184,7 @@ async def admin_login_alias(
 ):
     return await admin_login(body, conn)
 
-# ---------------------------------------------------------------------------
 # Authenticated profile endpoints
-# ---------------------------------------------------------------------------
 
 from app.auth_deps import get_current_user_id  # noqa: E402
 from app.schemas.shop import UpdateProfileRequest, UserProfileResponse  # noqa: E402
@@ -246,10 +244,6 @@ async def update_profile(
 
 @router.post("/logout")
 async def logout():
-    """
-    Symbolic logout. JWTs are stateless so the server has no session to
-    invalidate - the frontend should drop the token from storage. We expose
-    this endpoint so the frontend can call it for analytics/UX consistency.
-    """
+
     return {"ok": True, "message": "Logged out"}
 

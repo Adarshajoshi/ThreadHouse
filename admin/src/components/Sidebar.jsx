@@ -40,6 +40,10 @@ const Sidebar = () => {
           <p className="hidden md:block">Intel (ML)</p>
         </NavLink>
 
+        <NavLink className={linkClass} to="/engagement">
+          <p className="hidden md:block">Engagement</p>
+        </NavLink>
+
       </div>
     </div>
   )

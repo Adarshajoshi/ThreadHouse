@@ -140,8 +140,17 @@ export function useAnalytics() {
   useEffect(() => {
     const page = location.pathname
 
+    // Safely find the nearest [data-track] ancestor. e.target can be the
+    // document, window, or a text node (no .closest), so guard against that.
+    const closestTracked = (e) => {
+      let node = e.target
+      if (node && node.nodeType === 3) node = node.parentElement // text node
+      if (!node || typeof node.closest !== 'function') return null
+      return node.closest('[data-track]')
+    }
+
     const onClick = (e) => {
-      const el = e.target.closest('[data-track]')
+      const el = closestTracked(e)
       if (!el) return
       sendEvent({
         event_type: 'click',
@@ -152,7 +161,7 @@ export function useAnalytics() {
     }
 
     const onHover = (e) => {
-      const el = e.target.closest('[data-track]')
+      const el = closestTracked(e)
       if (!el) return
       const key = `hover_${el.dataset.track}`
       if (timers.current[key]) return
@@ -167,7 +176,7 @@ export function useAnalytics() {
     }
 
     const onKeyup = (e) => {
-      const el = e.target.closest('[data-track]')
+      const el = closestTracked(e)
       if (!el) return
       const key = `key_${el.dataset.track}`
       clearTimeout(timers.current[key])
@@ -187,7 +196,7 @@ export function useAnalytics() {
       const now = Date.now()
       if (now - lastMouseSent < 3000) return
       lastMouseSent = now
-      const el = e.target.closest('[data-track]')
+      const el = closestTracked(e)
       if (!el) return
       sendEvent({
         event_type: 'mouse_move',

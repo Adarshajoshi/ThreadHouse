@@ -1,7 +1,5 @@
-"""Analytics events router (event ingestion + aggregated summary).
-Uses asyncpg pool from app.db.asyncpg_pool.
-"""
 
+import json
 from typing import Any
 
 import asyncpg
@@ -18,6 +16,27 @@ from app.schemas.shop import AnalyticsEvent
 
 router = APIRouter()
 
+_CATALOG_PATH = _os.path.join(_os.path.dirname(__file__), "..", "data", "catalog.json")
+_CATALOG: dict[str, dict] | None = None
+
+
+def _catalog() -> dict[str, dict]:
+    global _CATALOG
+    if _CATALOG is None:
+        try:
+            with open(_CATALOG_PATH, encoding="utf-8") as f:
+                _CATALOG = json.load(f)
+        except (OSError, ValueError):
+            _CATALOG = {}
+    return _CATALOG
+
+
+def _catalog_image_url(image: str | None) -> str | None:
+    """Map a catalog image path like 'images/foo.jpg' to a backend-served URL."""
+    if not image:
+        return None
+    return f"/catalog-images/{_os.path.basename(image)}"
+
 
 @router.post("/event", status_code=201)
 async def ingest_event(
@@ -25,11 +44,8 @@ async def ingest_event(
     conn: asyncpg.Connection = Depends(get_asyncpg_conn),
 ):
     """Receive a single analytics event and broadcast it to live subscribers."""
-    # Parse the incoming ISO-8601 timestamp into a real datetime; asyncpg
-    # rejects strings for timestamptz columns even with a cast in the SQL.
     raw_ts = event.timestamp
     try:
-        # JS toISOString() emits e.g. "2026-05-09T14:48:44.355Z"
         ts_dt = datetime.fromisoformat(raw_ts.replace("Z", "+00:00"))
     except (ValueError, AttributeError):
         ts_dt = datetime.now(timezone.utc)
@@ -49,7 +65,6 @@ async def ingest_event(
         event.monetary_value,
         ts_dt,
     )
-    # Broadcast to live subscribers (admin dashboards listening on /ws/analytics).
     await live_tracking.publish({
         "session_id":     event.session_id,
         "user_id":        event.user_id,
@@ -163,17 +178,105 @@ async def get_summary(
     }
 
 
-# ---------------------------------------------------------------------------
-# Live RFM segmentation
-# ---------------------------------------------------------------------------
-#
-# Computes Recency / Frequency / Monetary directly from the orders table
-# (and optionally cross-references analytics_events for engagement signal),
-# then assigns each user a 1-5 quintile score on each axis and a named
-# segment. This is a real-time alternative to ThreadHouse's batch CSV upload
-# pipeline: useful while traffic is still small.
-# ---------------------------------------------------------------------------
+@router.get("/engagement")
+async def get_engagement(
+    days: int = Query(30, ge=1, le=365, description="Look-back window in days"),
+    limit: int = Query(10, ge=1, le=50, description="Max rows per list"),
+    conn: asyncpg.Connection = Depends(get_asyncpg_conn),
+    _admin: int = Depends(get_current_admin),
+) -> dict[str, Any]:
+    """Engagement view: most visited pages and most wishlisted products.
 
+    Purely a reporting view over analytics_events — does NOT feed the ML
+    segmentation pipeline.
+    """
+    since_clause = f"timestamp >= NOW() - INTERVAL '{days} days'"
+
+    # --- Most visited pages -------------------------------------------------
+    rows = await conn.fetch(
+        f"""
+        SELECT page, COUNT(*) AS views
+        FROM   analytics_events
+        WHERE  {since_clause}
+          AND  event_type = 'page_view'
+          AND  page IS NOT NULL
+        GROUP  BY page
+        ORDER  BY views DESC
+        LIMIT  {limit}
+        """
+    )
+    top_pages = [{"page": r["page"], "views": r["views"]} for r in rows]
+
+   
+    rows = await conn.fetch(
+        f"""
+        WITH w AS (
+            SELECT value AS product_id,
+                   COUNT(*) FILTER (WHERE event_type = 'wishlist_add')    AS adds,
+                   COUNT(*) FILTER (WHERE event_type = 'wishlist_remove') AS removes
+            FROM   analytics_events
+            WHERE  {since_clause}
+              AND  event_type IN ('wishlist_add', 'wishlist_remove')
+              AND  value IS NOT NULL
+            GROUP  BY value
+        )
+        SELECT w.product_id AS product_id,
+               p.name       AS name,
+               p.price      AS price,
+               p.image      AS image,
+               w.adds       AS adds,
+               w.removes    AS removes
+        FROM   w
+        LEFT   JOIN products p
+               ON p.id = CASE WHEN w.product_id ~ '^[0-9]+$'
+                              THEN w.product_id::int END
+        ORDER  BY (w.adds - w.removes) DESC
+        LIMIT  {limit}
+        """
+    )
+
+    def _first_image(raw) -> str | None:
+        try:
+            imgs = raw if isinstance(raw, list) else json.loads(raw or "[]")
+            return imgs[0] if imgs else None
+        except (ValueError, TypeError):
+            return None
+
+    catalog = _catalog()
+    top_wishlisted = []
+    for r in rows:
+        pid = r["product_id"]
+        name = r["name"]
+        price = float(r["price"]) if r["price"] is not None else None
+        image = _first_image(r["image"])
+
+        # Fall back to the static storefront catalog for ids not in the DB.
+        if name is None:
+            cat = catalog.get(pid)
+            if cat:
+                name = cat.get("name")
+                if price is None and cat.get("price") is not None:
+                    price = float(cat["price"])
+                image = image or _catalog_image_url(cat.get("image"))
+
+        top_wishlisted.append({
+            "product_id": pid,
+            "name":       name or f"Product #{pid}",
+            "price":      price,
+            "image":      image,
+            "adds":       r["adds"],
+            "removes":    r["removes"],
+            "net":        r["adds"] - r["removes"],
+        })
+
+    return {
+        "window_days":    days,
+        "top_pages":      top_pages,
+        "top_wishlisted": top_wishlisted,
+    }
+
+
+#Live RFM Segmentation
 
 def _quintile(values: list[float], v: float, reverse: bool = False) -> int:
     """
@@ -317,13 +420,7 @@ async def live_snapshot(
     conn: asyncpg.Connection = Depends(get_asyncpg_conn),
     _admin: int = Depends(get_current_admin),
 ) -> dict:
-    """
-    Snapshot of activity in the last `minutes` minutes:
-      - active_sessions:  unique session_ids
-      - events_per_min:   recent events broken down by minute
-      - top_pages:        most-viewed pages right now
-      - recent_events:    last 50 events (newest first)
-    """
+   
     since_clause = f"timestamp >= NOW() - INTERVAL '{minutes} minutes'"
 
     active_sessions = await conn.fetchval(
@@ -388,35 +485,36 @@ async def live_snapshot(
 
 @router.websocket("/ws")
 async def live_event_stream(websocket: WebSocket):
-    """
-    Real-time stream of analytics events. Admin-only.
 
-    Connect with: ws://host:8000/api/analytics/ws?token=<JWT>
-    Each message is the same JSON the ingest endpoint received.
-    """
-    # ----- token check (admin only) -----
     token = websocket.query_params.get("token")
     if not token:
+        print("[ws] reject: no token")
         await websocket.close(code=4401)
         return
     try:
-        payload = _jwt.decode(token, _os.getenv("JWT_SECRET", ""), algorithms=["HS256"])
+        secret = _os.getenv("JWT_SECRET", "")
+        payload = _jwt.decode(token, secret, algorithms=["HS256"])
         user_id = int(payload["sub"])
-    except Exception:
+    except Exception as e:
+        print(f"[ws] reject: JWT decode failed ({type(e).__name__}: {e}); "
+              f"JWT_SECRET present={bool(_os.getenv('JWT_SECRET'))}")
         await websocket.close(code=4401)
         return
 
     # Verify role from DB
     from app.db.asyncpg_pool import _pool  # lazily reuse the global pool
     if _pool is None:
+        print("[ws] reject: asyncpg pool is None (DB not initialised)")
         await websocket.close(code=1011)
         return
     async with _pool.acquire() as conn:
         role = await conn.fetchval("SELECT role FROM users WHERE id = $1", user_id)
     if role != "admin":
+        print(f"[ws] reject: user {user_id} role={role!r} (need 'admin')")
         await websocket.close(code=4403)
         return
 
+    print(f"[ws] accept: admin user {user_id} connected")
     await websocket.accept()
     queue = live_tracking.subscribe()
     try:

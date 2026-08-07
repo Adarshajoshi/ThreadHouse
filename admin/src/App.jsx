@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import axios from 'axios'
 import Navbar from './components/Navbar'
 import Sidebar from './components/Sidebar'
 import { Route, Routes, Navigate } from 'react-router-dom'
@@ -7,11 +8,12 @@ import List from './pages/List'
 import Orders from './pages/Orders'
 import LiveTracking from './pages/LiveTracking'
 import Intel from './pages/Intel'
+import Engagement from './pages/Engagement'
 import Login from './components/Login'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
-export const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000'
+export const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
 
 const App = () => {
   const [token, setToken] = useState(localStorage.getItem('admin_token') || '')
@@ -20,6 +22,22 @@ const App = () => {
     setToken('')
     localStorage.removeItem('admin_token')
   }
+
+  // Global 401 handler: an expired/invalid token clears auth and returns to
+  // login, instead of letting pages retry the request forever.
+  useEffect(() => {
+    const interceptorId = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error?.response?.status === 401) {
+          localStorage.removeItem('admin_token')
+          setToken('')
+        }
+        return Promise.reject(error)
+      }
+    )
+    return () => axios.interceptors.response.eject(interceptorId)
+  }, [])
 
   if (token === '') {
     return (
@@ -45,6 +63,7 @@ const App = () => {
             <Route path="/orders" element={<Orders token={token} />} />
             <Route path="/live"   element={<LiveTracking token={token} />} />
             <Route path="/intel"  element={<Intel token={token} />} />
+            <Route path="/engagement" element={<Engagement token={token} />} />
           </Routes>
         </div>
       </div>

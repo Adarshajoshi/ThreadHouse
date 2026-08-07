@@ -226,7 +226,8 @@ const Intel = ({ token }) => {
           {uploading && <span className="text-sm text-stone-500">Uploading…</span>}
           {jobId && (
             <span className="text-xs font-mono text-stone-500">
-              job: {jobId.slice(0, 8)}… ·
+              job: <span className="select-all text-stone-700">{jobId}</span>
+              <button type="button" onClick={() => { try { navigator.clipboard.writeText(jobId) } catch (err) {} }} className="ml-1 text-teal-700 hover:underline">copy</button> ·
               <span className={`ml-1 px-1.5 py-0.5 rounded ${
                 jobStatus?.status === 'complete' ? 'bg-green-100 text-green-700'
                 : jobStatus?.status === 'failed' ? 'bg-red-100 text-red-700'
